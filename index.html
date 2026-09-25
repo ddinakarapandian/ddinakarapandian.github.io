@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daniel M. Dinakarapandian</title>
+  <meta name="description" content="Daniel M. Dinakarapandian — PhD candidate in Chemical &amp; Biomolecular Engineering at Georgia Tech studying how Alzheimer's amyloid-β42 chooses between fibril and oligomer assembly pathways.">
+  <meta name="theme-color" content="#07090f">
+
+  <link rel="canonical" href="https://ddinakarapandian.github.io/">
+  <meta property="og:type" content="profile">
+  <meta property="og:url" content="https://ddinakarapandian.github.io/">
+  <meta property="og:title" content="Daniel M. Dinakarapandian">
+  <meta property="og:description" content="PhD candidate, Chemical &amp; Biomolecular Engineering, Georgia Tech. Amyloid-β oligomers, solid-state NMR, biomolecular assembly.">
+  <meta property="og:image" content="https://ddinakarapandian.github.io/images/og.png">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20width='100'%20height='100'%20rx='22'%20fill='%2307090f'/%3E%3Cg%20fill='%23d9c27e'%3E%3Cpath%20d='M22%2026H60V20L78%2032L60%2044V38H22Z'/%3E%3Cpath%20d='M78%2044H40V38L22%2050L40%2062V56H78Z'/%3E%3Cpath%20d='M22%2062H60V56L78%2068L60%2080V74H22Z'/%3E%3C/g%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <!-- Marks the page as JS-enabled so panels become overlays; without JS every section simply stacks. -->
+  <script>document.documentElement.classList.add('js');</script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Daniel M. Dinakarapandian",
+    "alternateName": "Daniel Manogaran",
+    "url": "https://ddinakarapandian.github.io/",
+    "image": "https://ddinakarapandian.github.io/images/og.png",
+    "jobTitle": "PhD Candidate, Chemical & Biomolecular Engineering",
+    "affiliation": { "@type": "CollegeOrUniversity", "name": "Georgia Institute of Technology" },
+    "email": "mailto:dmd9@gatech.edu",
+    "sameAs": [
+      "https://orcid.org/0009-0000-0081-3958",
+      "https://scholar.google.com/citations?user=NYMkqIoAAAAJ",
+      "https://www.linkedin.com/in/danielmanogaran/",
+      "https://github.com/ddinakarapandian"
+    ]
+  }
+  </script>
+</head>
+
+<body>
+  <canvas id="fibril" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <div class="wrapper">
+
+    <!-- ============================== HERO ============================== -->
+    <header class="hero" id="top">
+      <div class="portrait">
+        <svg class="emblem" viewBox="8 8 84 84" role="img" aria-label="Three-stranded antiparallel β-sheet">
+          <path class="emblem-loop" d="M74 34 C 87 34, 87 50, 74 50 M26 50 C 13 50, 13 66, 26 66"/>
+          <path class="emblem-strand" d="M26 30H62V26L74 34L62 42V38H26Z"/>
+          <path class="emblem-strand" d="M74 46H38V42L26 50L38 58V54H74Z"/>
+          <path class="emblem-strand" d="M26 62H62V58L74 66L62 74V70H26Z"/>
+        </svg>
+      </div>
+
+      <div class="hero-content">
+        <div class="hero-inner">
+          <h1>Daniel M. Dinakarapandian</h1>
+          <p class="hero-role">PhD Candidate &middot; Chemical &amp; Biomolecular Engineering &middot; Georgia Tech</p>
+          <p class="hero-tagline">Why does amyloid-&beta; form toxic oligomers instead of fibrils? I&nbsp;study how it picks a pathway, and how to steer that choice.</p>
+        </div>
+      </div>
+
+      <nav class="hero-nav" aria-label="Sections">
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#research">Research</a></li>
+          <li><a href="#publications">Publications</a></li>
+          <li><a href="#experience">Experience</a></li>
+          <li><a href="#honors">Honors</a></li>
+          <li><a href="#skills">Skills</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <a class="cv-link" href="cv.pdf" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+        Download CV
+      </a>
+    </header>
+
+    <!-- ============================== PANELS ============================== -->
+    <main class="panels" id="panels">
+
+      <!-- ---------- ABOUT ---------- -->
+      <article class="panel" id="about" aria-labelledby="about-h">
+        <h2 id="about-h" class="major">About</h2>
+        <div class="about-text">
+            <p class="lead">I'm a PhD candidate in Chemical &amp; Biomolecular Engineering at Georgia Tech, advised by <a href="https://sites.gatech.edu/paravastulab/" target="_blank" rel="noopener">Prof.&nbsp;Anant&nbsp;K.&nbsp;Paravastu</a>.</p>
+            <p>Alzheimer's amyloid-&beta;42 can assemble into ordered fibrils or into small, soluble oligomers. My thesis, <em>Controlling Alzheimer's Amyloid-&beta;42 Oligomer Formation by Pathway Selection</em>, asks what decides between these two outcomes and how the decision can be changed on purpose. I use solid-state NMR, cryo-EM and biophysical chromatography alongside all-atom and coarse-grained simulation. With the Wood lab, I connect oligomer structure to how microglia respond to it.</p>
+            <p>Before graduate school I spent four years in industry: first as a process engineer at Manali Petrochemicals, then as a data analyst on Amazon's Alexa Shopping team. That work taught me to build reproducible, quantitative workflows, and I bring the same habits to the lab.</p>
+        </div>
+
+        <div class="facts">
+          <div><span class="fact-k">Program</span><span class="fact-v">Ph.D., ChBE &middot; since 2022</span></div>
+          <div><span class="fact-k">Advisor</span><span class="fact-v">Anant K. Paravastu</span></div>
+          <div><span class="fact-k">Fellowship</span><span class="fact-v">Eckert Graduate Fellow, 2026</span></div>
+          <div><span class="fact-k">Mentoring</span><span class="fact-v">10+ undergraduates / semester</span></div>
+        </div>
+
+        <h3>Research interests</h3>
+        <ul class="chips">
+          <li>Biomolecular assembly</li>
+          <li>Amyloid oligomers</li>
+          <li>RNA localization</li>
+          <li>Cancer invasion</li>
+          <li>Physical biology of disease</li>
+        </ul>
+
+        <h3>Recent</h3>
+        <ul class="news">
+          <li><time>2026</time><span>Awarded the <strong>Eckert Graduate Fellowship</strong>, School of ChBE, Georgia Tech.</span></li>
+          <li><time>2026</time><span>Co-first-author paper on how A&beta;42 deamidation reshapes aggregation and microglial response published in <em>ACS Chemical Neuroscience</em>.</span></li>
+          <li><time>2026</time><span>Poster at ACS Spring 2026 on how deamidation redirects the A&beta;42 aggregation pathway.</span></li>
+          <li><time>2025</time><span><strong>Best Mentor Award</strong>, Nakatani Foundation / Georgia Tech.</span></li>
+          <li><time>2025</time><span>Talk at the AIChE Annual Meeting on how deamidation redirects A&beta;42 aggregation.</span></li>
+          <li><time>2024</time><span>Invited talk at the Georgia Magnetic Resonance Symposium, Emory University, on fibril versus oligomer assembly pathways.</span></li>
+          <li><time>2024</time><span><strong>Best Poster Award</strong> at the Southeastern Magnetic Resonance Conference for combining solid-state NMR and cryo-EM on a designer &alpha;-helical filament.</span></li>
+        </ul>
+      </article>
+
+      <!-- ---------- RESEARCH ---------- -->
+      <article class="panel" id="research" aria-labelledby="research-h">
+        <h2 id="research-h" class="major">Research</h2>
+        <p class="eyebrow">Thesis &middot; in progress</p>
+        <h3 class="research-title">Controlling Alzheimer's amyloid-&beta;42 oligomer formation by pathway selection</h3>
+        <p>Amyloid-&beta;42 has two main ways to assemble. It can form long, ordered fibrils, or it can form small, soluble oligomers, which are increasingly linked to toxicity in Alzheimer's disease. My work looks for the molecular features that send the peptide down one path or the other, then uses them as levers to change which path it takes.</p>
+
+        <figure class="pathway" aria-labelledby="pathway-cap">
+          <svg viewBox="0 0 640 230" role="img" aria-label="Diagram: A-beta-42 monomers branch into a fibril pathway or an oligomer pathway; detergent micelles and deamidation at Q15 and N27 act as levers on the branch point.">
+            <defs>
+              <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="svg-fill-muted"/></marker>
+            </defs>
+            <!-- monomers -->
+            <g class="svg-node">
+              <path d="M40 104 q10 -14 20 0 t20 0" class="svg-strand"/>
+              <path d="M44 126 q10 -14 20 0 t20 0" class="svg-strand"/>
+              <path d="M36 148 q10 -14 20 0 t20 0" class="svg-strand"/>
+            </g>
+            <text x="62" y="188" class="svg-label" text-anchor="middle">A&#946;42 monomer</text>
+
+            <!-- branch -->
+            <path d="M110 126 C 170 126, 190 60, 300 60" class="svg-line" marker-end="url(#arr)"/>
+            <path d="M110 126 C 170 126, 190 192, 300 192" class="svg-line svg-accent-line" marker-end="url(#arr)"/>
+
+            <!-- lever -->
+            <circle cx="170" cy="126" r="6" class="svg-accent-fill"/>
+            <text x="170" y="100" class="svg-small" text-anchor="middle">pathway</text>
+            <text x="170" y="112" class="svg-small" text-anchor="middle">selection</text>
+
+            <!-- fibril -->
+            <g transform="translate(318 38)">
+              <rect x="0" y="0" width="120" height="44" rx="6" class="svg-box"/>
+              <g class="svg-strand-thin">
+                <path d="M10 8v28M20 8v28M30 8v28M40 8v28M50 8v28M60 8v28M70 8v28M80 8v28M90 8v28M100 8v28M110 8v28"/>
+              </g>
+            </g>
+            <text x="456" y="56" class="svg-label">Fibrils</text>
+            <text x="456" y="74" class="svg-small">ordered, in-register &#946;-sheets</text>
+
+            <!-- oligomer -->
+            <g transform="translate(348 168)">
+              <circle cx="16" cy="24" r="16" class="svg-box svg-accent-stroke"/>
+              <circle cx="46" cy="18" r="13" class="svg-box svg-accent-stroke"/>
+              <circle cx="36" cy="42" r="10" class="svg-box svg-accent-stroke"/>
+            </g>
+            <text x="416" y="188" class="svg-label svg-accent-text">Oligomers</text>
+            <text x="416" y="206" class="svg-small">out-of-register &#946;-sheet motif</text>
+
+            <!-- levers list -->
+            <text x="126" y="36" class="svg-small svg-muted">Levers studied: detergent micelles &middot; Q15 / N27 deamidation</text>
+          </svg>
+          <figcaption id="pathway-cap">Monomers can go down one of two pathways. My projects look for levers that push assembly toward one outcome or the other.</figcaption>
+        </figure>
+
+        <div class="thrusts">
+          <section class="thrust">
+            <span class="thrust-n">01</span>
+            <h4>Oligomers for structural biology</h4>
+            <p>Synthetic A&beta;42 races toward fibrils unless it is steered. I developed a <strong>protocol for preparing A&beta;42 oligomers</strong> in the quantity and quality that solid-state NMR needs: removing fibril seeds, directing monomers into oligomers with detergent micelles, then separating and cleaning them up by size-exclusion chromatography and dialysis.</p>
+          </section>
+          <section class="thrust">
+            <span class="thrust-n">02</span>
+            <h4>Deamidation as a lever</h4>
+            <p>Deamidation at Q15 or N27 swaps a neutral amide side chain for a charged acid. With the Wood and Raskatov labs, we showed that this <strong>redirects A&beta;42 aggregation</strong>, reduces soluble oligomer formation and toxicity, and lowers microglial inflammatory cytokines and CD68.</p>
+          </section>
+          <section class="thrust">
+            <span class="thrust-n">03</span>
+            <h4>Designer peptide assemblies</h4>
+            <p>I also contribute to collaborative work on engineered peptide materials: <strong>redox-tunable condensates</strong> held together by disulfide cross-links, and <strong>angiogenic nanofiber hydrogels</strong> whose co-assembly keeps receptor-binding sites exposed.</p>
+          </section>
+        </div>
+
+        <h3>Toolkit</h3>
+        <div class="toolkit">
+          <div>
+            <h5>Experimental</h5>
+            <p>Solid-state &amp; solution NMR &middot; cryo-EM &middot; SEC/FPLC &middot; CD &middot; FTIR &middot; TIMS-TOF native MS &middot; mass photometry &middot; peptide synthesis</p>
+          </div>
+          <div>
+            <h5>Computational</h5>
+            <p>All-atom MD (NAMD, GROMACS) &middot; coarse-grained MD (MARTINI&nbsp;3, AWSEM-MD, PRIME20/DMD, CALVADOS&nbsp;2) &middot; SPINEVOLUTION &middot; Python tools for NMR analysis</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- ---------- PUBLICATIONS ---------- -->
+      <article class="panel" id="publications" aria-labelledby="pubs-h">
+        <h2 id="pubs-h" class="major">Publications</h2>
+
+        <div class="stats">
+          <div><b>5</b><span>peer-reviewed</span></div>
+          <div><b>2</b><span>first / co-first</span></div>
+          <div><b>4</b><span>presentations</span></div>
+        </div>
+        <p class="note"><span class="dagger">&dagger;</span>&thinsp;co-first author &nbsp;&middot;&nbsp; <span class="dagger">#</span>&thinsp;co-corresponding &nbsp;&middot;&nbsp; <a href="https://scholar.google.com/citations?user=NYMkqIoAAAAJ" target="_blank" rel="noopener">Google Scholar &rarr;</a></p>
+
+        <h3>Peer-reviewed articles &amp; book chapters</h3>
+        <ol class="pubs" reversed>
+          <li>
+            <a class="pub-title" href="https://doi.org/10.1021/acschemneuro.6c00024" target="_blank" rel="noopener">A&beta;-42 side chain deamidation at Q15 or N27 modulates protein aggregation and alters microglial cytokines and CD68</a>
+            <p class="pub-authors">M. N. Griffin<sup>&dagger;</sup>, <b class="me">D. M. Dinakarapandian</b><sup>&dagger;</sup>, C. Li, P. Ramaswamy, S. J. Saheba, J. Lee, T. R. Sudarshan, M. Sajimon, C. J. Wheeler, J. A. Raskatov, A. K. Paravastu<sup>#</sup>, L. B. Wood<sup>#</sup></p>
+            <p class="pub-venue"><em>ACS Chemical Neuroscience</em> &middot; 2026 <span class="tag tag-accent">Co-first</span><span class="tag">Open access</span></p>
+          </li>
+          <li>
+            <a class="pub-title" href="https://doi.org/10.1126/sciadv.aef5064" target="_blank" rel="noopener">Programming angiogenesis with tunable assemblies of multifunctional peptides</a>
+            <p class="pub-authors">J. Dodd-o, B. Shadpoor, A. Roy, R. Jafari, T. R. Sudarshan, A. Holberton, D. He, F. Coppola, <b class="me">D. M. Dinakarapandian</b>, D. Malu, G. Gharati, A. Griffith, H. Rohe-Weiner, S. Patel, E. Bonder, Y. Hu, L. Wood, A. K. Paravastu, P. Kral, V. A. Kumar</p>
+            <p class="pub-venue"><em>Science Advances</em> 12(31), eaef5064 &middot; 2026</p>
+          </li>
+          <li>
+            <a class="pub-title" href="https://doi.org/10.1016/bs.mie.2026.02.002" target="_blank" rel="noopener">How to prepare Alzheimer's amyloid-&beta;(1&ndash;42) oligomer samples with sufficient quantity and quality for biophysical and solid-state NMR measurements</a>
+            <p class="pub-authors"><b class="me">D. M. Dinakarapandian</b>, J. O. Watzlawik, T. R. Sudarshan, T. L. Rosenberry, A. K. Paravastu</p>
+            <p class="pub-venue"><em>Methods in Enzymology</em> 729, 419&ndash;433 &middot; 2026 <span class="tag tag-accent">First author</span><span class="tag">Book chapter</span></p>
+          </li>
+          <li>
+            <a class="pub-title" href="https://doi.org/10.1021/acschemneuro.5c00544" target="_blank" rel="noopener">Asparagine deamidation attenuates toxicity, aggregation, and microglial responses of Alzheimer's amyloid-&beta;</a>
+            <p class="pub-authors">M. Sajimon, C. J. Wheeler, A. R. Foley, K. Chan, M. N. Griffin, <b class="me">D. M. Dinakarapandian</b>, A. Holberton, J. Joy, A. K. Paravastu, L. B. Wood, J. A. Raskatov</p>
+            <p class="pub-venue"><em>ACS Chemical Neuroscience</em> 16(20), 4076&ndash;4085 &middot; 2025</p>
+          </li>
+          <li>
+            <a class="pub-title" href="https://doi.org/10.1021/jacs.4c09557" target="_blank" rel="noopener">Reversible disulfide bond cross-links as tunable levers of phase separation in designer biomolecular condensates</a>
+            <p class="pub-authors">M. Mondal, P. E. Jankoski, L. D. Lee, <b class="me">D. M. Dinakarapandian</b>, T.-Y. Chiu, W. S. Swetman, H. Wu, A. K. Paravastu, T. D. Clemons, V. Rangachari</p>
+            <p class="pub-venue"><em>Journal of the American Chemical Society</em> 146(36), 25299&ndash;25311 &middot; 2024</p>
+          </li>
+        </ol>
+
+        <h3>Conference presentations</h3>
+        <ul class="talks">
+          <li>
+            <span class="tag">Poster</span>
+            <p class="pub-title">Deamidation of amyloid beta(1&ndash;42) redirects aggregation pathway and alters microglial response</p>
+            <p class="pub-venue">ACS Spring 2026 &middot; <b class="me">D. M. Dinakarapandian</b>, et al.</p>
+          </li>
+          <li>
+            <span class="tag">Talk</span>
+            <p class="pub-title">Deamidation in Alzheimer's amyloid beta (1&ndash;42) redirects aggregation pathways and reduces toxic oligomer formation</p>
+            <p class="pub-venue">AIChE Annual Meeting 2025 &middot; <b class="me">D. M. Dinakarapandian</b>, P. Ramaswamy, M. Griffin, T. R. Sudarshan, L. Wood, A. K. Paravastu</p>
+          </li>
+          <li>
+            <span class="tag tag-accent">Invited talk</span>
+            <p class="pub-title">The distinction between amyloid fibril and oligomer assembly pathways for Alzheimer's amyloid-&beta; peptides</p>
+            <p class="pub-venue">Georgia Magnetic Resonance Symposium, hosted by Emory University, Atlanta &middot; Dec 12, 2024</p>
+          </li>
+          <li>
+            <span class="tag">Poster</span><span class="tag tag-accent">Best Poster Award</span>
+            <p class="pub-title">Combining solid-state NMR and cryo-EM to probe structure of a designer &alpha;-helical filament</p>
+            <p class="pub-venue">52nd Southeastern Magnetic Resonance Conference (SEMRC), within SERMACS 2024, Atlanta &middot; <b class="me">D. M. Dinakarapandian</b>, A. Das, A. S. Robang, V. P. Conticello, A. K. Paravastu</p>
+          </li>
+        </ul>
+      </article>
+
+      <!-- ---------- EXPERIENCE ---------- -->
+      <article class="panel" id="experience" aria-labelledby="exp-h">
+        <h2 id="exp-h" class="major">Experience</h2>
+
+        <h3>Education</h3>
+        <div class="edu">
+          <div class="edu-card">
+            <span class="edu-when">Aug 2022 &ndash; present</span>
+            <h4>Ph.D., Chemical Engineering</h4>
+            <p>Georgia Institute of Technology, Atlanta, GA</p>
+            <p class="muted">GPA 3.73 &middot; Advisor: Prof. Anant K. Paravastu</p>
+          </div>
+          <div class="edu-card">
+            <span class="edu-when">May 2018</span>
+            <h4>B.Tech., Chemical Engineering</h4>
+            <p>Anna University, Chennai, India</p>
+            <p class="muted">GPA 3.76 &middot; First Class with Distinction &middot; Dean's List</p>
+          </div>
+        </div>
+
+        <h3>Research &amp; industry</h3>
+        <ol class="timeline">
+          <li>
+            <span class="tl-when">2022 &ndash; now</span>
+            <div class="tl-body">
+              <h4>Graduate Research Assistant, Paravastu Lab</h4>
+              <p class="tl-where">School of Chemical &amp; Biomolecular Engineering, Georgia Tech</p>
+              <ul>
+                <li>Developed a protocol for preparing A&beta;42 oligomers for solid-state NMR (<em>Methods in Enzymology</em>, 2026).</li>
+                <li>Showed, with the Wood and Raskatov labs, that side-chain deamidation at Q15 or N27 redirects A&beta;42 aggregation and dampens microglial inflammation (<em>ACS Chemical Neuroscience</em>, 2025 and 2026).</li>
+                <li>Use solid-state NMR, cryo-EM, SEC, CD, FTIR, TIMS-TOF MS and mass photometry on oligomers, fibrils and designer &alpha;-helical assemblies.</li>
+                <li>Run all-atom and coarse-grained MD (NAMD, AWSEM-MD, MARTINI&nbsp;3, PRIME20/DMD) and build Python tools for NMR analysis.</li>
+                <li>Mentor 10+ undergraduate researchers each semester.</li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <span class="tl-when">2021 &ndash; 2022</span>
+            <div class="tl-body">
+              <h4>Data Analyst, Alexa Shopping &mdash; Amazon</h4>
+              <p class="tl-where">Chennai, India</p>
+              <ul>
+                <li>Analyzed root causes of voice-query goal success and failure across the US, UK and AU domains. Worked with the Natural Language Understanding team to fix recurring failures in ASR, intent and neural-network components.</li>
+                <li>Built 10+ automated workflows (GYRO, Redshift) that streamlined ASR-diagnostic pipelines.</li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <span class="tl-when">2018 &ndash; 2021</span>
+            <div class="tl-body">
+              <h4>Process Engineer &mdash; Manali Petrochemicals Ltd.</h4>
+              <p class="tl-where">Chennai, India</p>
+              <ul>
+                <li>Led productivity projects on cracking furnaces, adsorption towers and distillation columns (pressurized, vacuum and azeotropic) to raise capacity and cut cost.</li>
+                <li>Connected plant data analytics to the Yokogawa Centum-VP DCS, reducing downtime.</li>
+              </ul>
+            </div>
+          </li>
+        </ol>
+      </article>
+
+      <!-- ---------- HONORS ---------- -->
+      <article class="panel" id="honors" aria-labelledby="honors-h">
+        <h2 id="honors-h" class="major">Honors &amp; Service</h2>
+
+        <h3>Awards</h3>
+        <ul class="awards">
+          <li><time>2026</time><div><strong>Eckert Graduate Fellowship</strong><span>School of Chemical &amp; Biomolecular Engineering, Georgia Tech</span></div></li>
+          <li><time>2025</time><div><strong>Best Mentor Award</strong><span>Nakatani Foundation / Georgia Tech</span></div></li>
+          <li><time>2024</time><div><strong>Best Poster Award</strong><span>Solution &amp; solid-state NMR, 52nd Southeastern Magnetic Resonance Conference (SEMRC 2024)</span></div></li>
+          <li><time>2024</time><div><strong>Petit Mentorship Award</strong><span>Georgia Tech</span></div></li>
+          <li><time>2024</time><div><strong>BASF Capstone Scholarship</strong><span>Georgia Tech</span></div></li>
+          <li><time>2018</time><div><strong>First Class with Distinction</strong><span>Department of Chemical Engineering, Anna University</span></div></li>
+        </ul>
+
+        <h3>Leadership &amp; service</h3>
+        <ul class="awards">
+          <li><time>2025&ndash;26</time><div><strong>Nakatani Graduate Mentor</strong><span>Nakatani Research &amp; International Experiences for Students (Fall 2025, Fall 2026)</span></div></li>
+          <li><time>2018</time><div><strong>Professional Development Chair</strong><span>IIChE Student Chapter, Anna University</span></div></li>
+        </ul>
+
+        <h3>Peer review</h3>
+        <ul class="awards">
+          <li><time>2026</time><div><strong>Reviewer</strong><span><em>Communications Chemistry</em> (Springer Nature)</span></div></li>
+        </ul>
+      </article>
+
+      <!-- ---------- SKILLS ---------- -->
+      <article class="panel" id="skills" aria-labelledby="skills-h">
+        <h2 id="skills-h" class="major">Skills</h2>
+
+        <h3>Structural &amp; biophysical</h3>
+        <ul class="chips">
+          <li>Solid-state NMR</li><li>Solution NMR</li><li>Cryo-EM</li><li>SEC / FPLC</li><li>RP-HPLC</li>
+          <li>Circular dichroism</li><li>FTIR</li><li>LC&ndash;MS</li><li>Native MS (TIMS-TOF)</li><li>Mass photometry</li>
+          <li>SDS-PAGE</li><li>Fmoc solid-phase peptide synthesis</li><li>CEM Liberty Blue</li>
+        </ul>
+
+        <h3>Biological</h3>
+        <ul class="chips">
+          <li>Mammalian cell culture</li><li>Microglial cytotoxicity assays</li><li>Inflammation assays</li>
+        </ul>
+
+        <h3>Simulation</h3>
+        <ul class="chips">
+          <li>NAMD</li><li>GROMACS</li><li>VMD</li><li>MARTINI 3</li><li>CALVADOS 2</li><li>PRIME20 / DMD</li>
+          <li>AWSEM-MD</li><li>SPINEVOLUTION</li><li>Packmol</li><li>MDAnalysis</li><li>DSSP</li>
+        </ul>
+
+        <h3>Programming &amp; data</h3>
+        <ul class="chips">
+          <li>Python</li><li>R</li><li>MATLAB</li><li>Mathematica</li><li>SQL / Redshift</li><li>Aspen</li>
+        </ul>
+      </article>
+
+      <!-- ---------- CONTACT ---------- -->
+      <article class="panel" id="contact" aria-labelledby="contact-h">
+        <h2 id="contact-h" class="major">Contact</h2>
+        <p class="lead">I'm glad to hear about collaborations, fellowships and conversations about amyloid, biomolecular assembly or solid-state NMR.</p>
+
+        <ul class="contact-list">
+          <li>
+            <a href="mailto:dmd9@gatech.edu">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+              <span><small>Email</small>dmd9@gatech.edu</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://orcid.org/0009-0000-0081-3958" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 8.5v7M12 8.5h1.5a3.5 3.5 0 0 1 0 7H12z"/></svg>
+              <span><small>ORCID</small>0009-0000-0081-3958</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://scholar.google.com/citations?user=NYMkqIoAAAAJ" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 9 10-6 10 6-10 6z"/><path d="M6 11.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5"/></svg>
+              <span><small>Google Scholar</small>Publications &amp; citations</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://www.linkedin.com/in/danielmanogaran/" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10v7M8 7v.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7"/></svg>
+              <span><small>LinkedIn</small>danielmanogaran</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/ddinakarapandian" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg>
+              <span><small>GitHub</small>ddinakarapandian</span>
+            </a>
+          </li>
+        </ul>
+
+        <p class="address">School of Chemical &amp; Biomolecular Engineering<br>Georgia Institute of Technology &middot; Atlanta, GA</p>
+
+        <a class="btn" href="cv.pdf" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+          Download full CV (PDF)
+        </a>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; <span id="year">2026</span> Daniel M. Dinakarapandian &middot; Atlanta, GA</p>
+    </footer>
+  </div>
+
+  <script src="assets/js/fibril.js" defer></script>
+  <script src="assets/js/main.js" defer></script>
+</body>
+</html>
