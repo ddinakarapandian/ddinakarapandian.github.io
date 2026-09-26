@@ -486,7 +486,9 @@ h2.major {
 .endon-b { stroke: var(--accent); }
 .endon-dot-a { fill: var(--text-2); }
 .endon-dot-b { fill: var(--accent); }
-.endon-label { font-family: var(--sans); font-size: 11px; font-weight: 600; fill: var(--muted); }
+.endon-label { font-family: var(--sans); font-size: 11px; font-weight: 600; }
+.endon-label-a { fill: var(--text-2); }
+.endon-label-b { fill: var(--accent); }
 .endon figcaption { margin-top: 0.75rem; font-size: 0.82rem; line-height: 1.5; color: var(--muted); text-align: left; }
 .endon figcaption strong { color: var(--text-2); font-weight: 600; }
 
