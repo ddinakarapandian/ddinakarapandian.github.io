@@ -1,7 +1,7 @@
 /* ==========================================================================
-   Background: a slowly rotating cross-β amyloid fibril drawn as a point cloud.
-   Two protofilaments, each a pair of pleated β-sheets; strands run across the
-   fibril axis and stack along it with a gentle left-handed twist.
+   Background: a slowly rotating Aβ42 amyloid fibril built from the cryo-EM
+   structure PDB 5OQV (two protofilaments of LS-shaped subunits), drawn as its
+   Cα backbone ("bones") with one dot per residue.
    ========================================================================== */
 (function () {
   'use strict';
@@ -13,44 +13,38 @@
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   var lightQuery = window.matchMedia('(prefers-color-scheme: light)');
 
-  // ---- Geometry (model units) ----
-  var LAYERS = 96;          // strands stacked along the fibril axis
-  var RESIDUES = 11;        // residues per strand
-  var LAYER_GAP = 0.085;    // ~4.8 Å rise, in model units
-  var TWIST = -0.034;       // radians per layer (left-handed)
-  var STRAND_HALF = 0.62;   // half strand length
-  var SHEET_GAP = 0.2;      // steric-zipper spacing between mated sheets
-  var PF_OFFSET = 0.46;     // protofilament offset from axis
+  // ---- Geometry: Aβ42 fibril, PDB 5OQV (Gremer et al., Science 2017) ----
+  // Cα trace of one subunit (residues 1–42, Å) in a frame whose y axis is the
+  // fibril axis. Neighbouring subunits alternate between the two protofilaments
+  // and are related by a pseudo-2₁ screw fitted to the deposited model
+  // (per layer: -1.44° twist, 4.68 Å rise; regenerated chains match to <0.05 Å).
+  var CA = [13.0, -7.3, 2.2, 13.8, -6.5, -1.3, 17.3, -5.7, -2.7, 17.8, -4.8, -6.4, 21.4, -5.1, -7.5, 21.9, -4.2, -11.2, 25.5, -4.3, -12.4, 25.7, -3.9, -16.1, 27.7, -3.0, -19.3, 26.0, -2.1, -22.6, 22.4, -2.4, -21.5, 19.3, -1.5, -23.6, 15.8, -1.4, -22.3, 12.8, -0.8, -24.6, 9.6, -0.5, -22.6, 6.4, 0.3, -24.5, 3.1, 0.3, -22.6, -0.2, 1.7, -23.6, -4.0, 1.2, -23.3, -6.9, 2.1, -25.6, -10.0, 3.2, -23.6, -13.0, 3.6, -25.9, -16.6, 3.8, -25.0, -15.7, 3.9, -21.3, -17.5, 5.5, -18.5, -15.1, 5.2, -15.7, -11.4, 4.2, -15.2, -9.3, 3.4, -12.1, -5.7, 2.4, -12.6, -2.1, 3.2, -12.8, 0.5, 2.9, -15.5, 4.3, 3.4, -15.1, 7.8, 2.0, -15.6, 10.4, 1.0, -13.0, 8.8, 1.4, -9.6, 11.0, 0.8, -6.5, 9.2, -0.9, -3.8, 5.7, -0.2, -2.6, 2.2, -0.9, -3.9, -0.9, 0.3, -5.7, -4.4, 0.2, -4.3, -7.2, -0.1, -6.8];
+  var RES = CA.length / 3;
+  var SCREW = 3.129003;          // rotation per subunit (rad)
+  var RISE = 2.3386;           // rise per subunit (Å)
+  var UNIT = 34.5;             // Å per model unit (outer radius → 1)
+  var SUBUNITS = 124;        // stacked along the axis
 
-  var points = [];          // {x,y,z, sheet, layer, res}
-  var strands = [];         // arrays of point indices, one per strand
+  var points = [];          // {x,y,z, pf, layer}
+  var strands = [];         // arrays of point indices, one per subunit
 
   (function build() {
-    for (var k = 0; k < LAYERS; k++) {
-      var y = (k - LAYERS / 2) * LAYER_GAP;
-      var th = k * TWIST;
-      var c = Math.cos(th), s = Math.sin(th);
-      for (var pf = 0; pf < 2; pf++) {
-        for (var sh = 0; sh < 2; sh++) {
-          var line = [];
-          var zBase = (pf === 0 ? -PF_OFFSET : PF_OFFSET) + (sh === 0 ? -SHEET_GAP / 2 : SHEET_GAP / 2);
-          for (var r = 0; r < RESIDUES; r++) {
-            var t = r / (RESIDUES - 1);
-            // slight arc so each protofilament reads as a curved β-arch
-            var x0 = (t - 0.5) * 2 * STRAND_HALF;
-            var z0 = zBase + (pf === 0 ? -1 : 1) * 0.1 * Math.cos(t * Math.PI) + (r % 2 ? 0.025 : -0.025);
-            points.push({
-              x: x0 * c - z0 * s,
-              y: y,
-              z: x0 * s + z0 * c,
-              sheet: pf * 2 + sh,
-              layer: k
-            });
-            line.push(points.length - 1);
-          }
-          strands.push(line);
-        }
+    for (var k = 0; k < SUBUNITS; k++) {
+      var n = k - SUBUNITS / 2;
+      var c = Math.cos(n * SCREW), s = Math.sin(n * SCREW);
+      var line = [];
+      for (var r = 0; r < RES; r++) {
+        var x = CA[r * 3], y = CA[r * 3 + 1], z = CA[r * 3 + 2];
+        points.push({
+          x: (x * c + z * s) / UNIT,
+          y: (y + n * RISE) / UNIT,
+          z: (-x * s + z * c) / UNIT,
+          pf: k % 2,
+          layer: k
+        });
+        line.push(points.length - 1);
       }
+      strands.push(line);
     }
   })();
 
@@ -96,7 +90,7 @@
   }
 
   // Fibril axis lies diagonally across the viewport.
-  var AXIS_ROLL = -0.62;
+  var AXIS_ROLL = 0.62;
   var CAM = 6.5;
 
   function project(x, y, z, cy, sy, cx, sx, cr, sr, out, o) {
@@ -111,7 +105,7 @@
     var y3 = x1 * sr + y2 * cr;
     var p = CAM / (CAM - z2);
     out[o] = W / 2 + x3 * scale * p;
-    out[o + 1] = H / 2 + y3 * scale * p;
+    out[o + 1] = H / 2 - y3 * scale * p;   // screen y is down: flip to keep the fibril's true handedness
     out[o + 2] = z2;
   }
 
@@ -119,7 +113,7 @@
     ctx.clearRect(0, 0, W, H);
 
     var cy = Math.cos(spin), sy = Math.sin(spin);
-    var ax = 0.28 + tiltY * 0.25, cx = Math.cos(ax), sx = Math.sin(ax);
+    var ax = 0.6 + tiltY * 0.25, cx = Math.cos(ax), sx = Math.sin(ax);
     var roll = AXIS_ROLL + tiltX * 0.08, cr = Math.cos(roll), sr = Math.sin(roll);
 
     ctx.globalCompositeOperation = isLight ? 'source-over' : 'lighter';
@@ -147,11 +141,11 @@
     for (var s = 0; s < strands.length; s++) {
       var line = strands[s];
       var first = points[line[0]];
-      var zMid = P[line[5] * 3 + 2];
+      var zMid = P[line[line.length >> 1] * 3 + 2];
       var depth = (zMid + 1.6) / 3.2;              // ~0 far → 1 near
       var fade = edgeFade(first.layer);
       var a = (0.05 + depth * 0.16) * fade * (isLight ? 1.2 : 1);
-      ctx.strokeStyle = 'rgba(' + (first.sheet % 2 ? colB : colA) + ',' + a.toFixed(3) + ')';
+      ctx.strokeStyle = 'rgba(' + (first.pf ? colB : colA) + ',' + a.toFixed(3) + ')';
       ctx.beginPath();
       ctx.moveTo(P[line[0] * 3], P[line[0] * 3 + 1]);
       for (var r = 1; r < line.length; r++) ctx.lineTo(P[line[r] * 3], P[line[r] * 3 + 1]);
@@ -166,7 +160,7 @@
       var f = edgeFade(pj.layer);
       var alpha = (0.12 + dep * 0.55) * f * (isLight ? 0.9 : 1);
       var rad = (0.6 + dep * 1.5) * (W < 640 ? 0.85 : 1);
-      ctx.fillStyle = 'rgba(' + (pj.sheet % 2 ? colB : colA) + ',' + alpha.toFixed(3) + ')';
+      ctx.fillStyle = 'rgba(' + (pj.pf ? colB : colA) + ',' + alpha.toFixed(3) + ')';
       ctx.fillRect(P[j * 3] - rad / 2, P[j * 3 + 1] - rad / 2, rad, rad);
     }
 
@@ -174,7 +168,7 @@
   }
 
   function edgeFade(layer) {
-    var e = Math.min(layer, LAYERS - 1 - layer) / 14;
+    var e = Math.min(layer, SUBUNITS - 1 - layer) / 18;
     return e >= 1 ? 1 : e * e * (3 - 2 * e);
   }
 
