@@ -6,7 +6,7 @@ Static digital CV for GitHub Pages. No build step: plain HTML, CSS and JS.
 index.html            all content (About, Research, Publications, Experience, Honors, Skills, Contact)
 assets/css/style.css  styles, with light and dark themes that follow the system setting
 assets/js/main.js     opens each section as an overlay panel (#about, #research, …)
-assets/js/fibril.js   animated amyloid-fibril background (canvas)
+assets/js/fibril.js   animated background: Aβ42 fibril Cα backbone from PDB 5OQV (canvas)
 images/og.png         link-preview image (β-sheet emblem)
 cv.pdf                the downloadable CV
 paravastu-lab/        proposed redesign of the Paravastu Lab website (self-contained page + images)
