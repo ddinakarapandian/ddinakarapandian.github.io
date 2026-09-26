@@ -37,6 +37,43 @@
     panel.appendChild(nav);
   });
 
+  // Number the blocks of each panel so CSS can stagger them in on opening.
+  // Lists and grids are staggered item by item rather than as one block.
+  var GROUPS = '.news, .pubs, .talks, .timeline, .awards, .chips, .contact-list, .thrusts, .facts, .stats, .edu, .toolkit';
+  var MAX_STEP = 14;
+  panels.forEach(function (panel) {
+    var i = 0;
+    function mark(el) {
+      el.setAttribute('data-reveal', '');
+      el.style.setProperty('--i', Math.min(i++, MAX_STEP));
+    }
+    Array.prototype.forEach.call(panel.children, function (el) {
+      if (el.matches('.panel-close, .panel-nav')) return;
+      if (el.matches(GROUPS)) Array.prototype.forEach.call(el.children, mark);
+      else mark(el);
+    });
+  });
+
+  // Count the Publications numbers up from zero when that panel opens.
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function countUp(panel) {
+    if (reduceMotion.matches) return;
+    Array.prototype.forEach.call(panel.querySelectorAll('.stats b'), function (b) {
+      var target = parseInt(b.getAttribute('data-target') || b.textContent, 10);
+      if (!target) return;
+      b.setAttribute('data-target', target);
+      var t0 = null, dur = 900, delay = 250;
+      b.textContent = '0';
+      function step(now) {
+        if (t0 === null) t0 = now + delay;
+        var k = Math.max(0, Math.min(1, (now - t0) / dur));
+        b.textContent = Math.round(target * (1 - Math.pow(1 - k, 3)));
+        if (k < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
   function link(target, pre, post) {
     var a = document.createElement('a');
     a.href = '#' + target.id;
@@ -59,6 +96,7 @@
     requestAnimationFrame(function () { container.scrollTop = 0; });
     document.title = panel.querySelector('h2').textContent + ' · Daniel M. Dinakarapandian';
     panel.focus({ preventScroll: true });
+    countUp(panel);
   }
 
   function hide() {
