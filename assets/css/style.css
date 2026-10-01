@@ -699,36 +699,16 @@ sup { color: var(--accent); font-size: 0.7em; }
 }
 
 /* ==========================================================================
-   WebGL mode (html.gl): the fibril is a tree, sections are its branches, and
-   opening one flies the camera into the structure with the content in a card
-   beside it. Without WebGL none of this applies and the overlay layout above
-   is used with the plain nav.
+   WebGL mode (html.gl): the name and tabs sit top-centre in front of the slowly turning
+   fibril, which fades out behind them. Opening a section splits the screen in half, the
+   content on one side and that section's view of the structure on the other. Without
+   WebGL none of this applies and the overlay layout above is used.
    ========================================================================== */
 
-/* Hero shrinks to a name block in the corner; the tree owns the middle */
-.gl .wrapper {
-  position: fixed; inset: 0; min-height: 0; padding: 0;
-  display: block; pointer-events: none;
-}
-.gl .hero {
-  position: absolute;
-  left: var(--gutter);
-  top: clamp(1.1rem, 4vh, 2.4rem);
-  align-items: flex-start;
-  text-align: left;
-  width: auto;
-  max-width: min(23rem, 70vw);
-}
-.gl .portrait { width: 2.6rem; height: 2.6rem; padding: 3px; }
-.gl .hero-content { margin-top: 1rem; border: 0; max-width: none; }
-.gl .hero-content::before, .gl .hero-content::after { display: none; }
-.gl .hero-inner { padding: 0; }
-.gl .hero h1 { margin-bottom: 0.55rem; font-size: clamp(1rem, 1.5vw, 1.3rem); letter-spacing: 0.16em; }
-.gl .hero-role { margin-bottom: 0.8rem; font-size: 0.64rem; letter-spacing: 0.18em; line-height: 1.6; }
-.gl .hero-tagline { margin: 0; font-size: 0.98rem; line-height: 1.5; }
-.gl .hero { text-shadow: 0 0 18px var(--bg), 0 0 6px var(--bg); }
-.gl .hero-nav { display: none; }
-.gl .cv-link { margin: 0.8rem 0 0 -1rem; pointer-events: auto; }
+.gl .wrapper { justify-content: flex-start; padding-top: clamp(2rem, 11vh, 6.5rem); }
+.gl .portrait { width: 5.5rem; height: 5.5rem; }
+.gl .hero { text-shadow: 0 0 22px var(--bg), 0 0 8px var(--bg); }
+.gl .hero-nav ul { background: color-mix(in srgb, var(--bg) 70%, transparent); }
 .gl .site-footer {
   position: fixed; left: 0; right: 0; bottom: 0.9rem; margin: 0;
   padding: 0 var(--gutter);
@@ -736,87 +716,15 @@ sup { color: var(--accent); font-size: 0.7em; }
 }
 .gl .site-footer .credit { margin-top: 0.3rem; }
 .gl .site-footer .credit a { pointer-events: auto; }
+/* the fibril fades into the page around the name rather than running behind the text */
 .gl .vignette {
-  background: radial-gradient(ellipse 130% 110% at 50% 50%, transparent 60%, var(--bg) 100%);
+  background:
+    radial-gradient(ellipse 52% 38% at 50% 30%, var(--vignette) 0%, transparent 100%),
+    radial-gradient(ellipse 130% 110% at 50% 50%, transparent 55%, var(--bg) 100%);
 }
 .gl body.is-panel-open #fibril { filter: none; opacity: 1; transform: none; }
-
-/* Branches */
-.tree {
-  position: fixed; inset: 0; z-index: 3;
-  pointer-events: none;
-}
-.tree-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.tree-limb {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.25;
-  stroke-linecap: round;
-  stroke-opacity: 0.75;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-.tree-root {
-  fill: var(--bg);
-  stroke: var(--accent);
-  stroke-width: 1.25;
-  opacity: 0;
-  transition: opacity 0.4s var(--ease), fill 0.2s;
-}
-.tree-limb.is-hot { stroke-opacity: 1; stroke-width: 1.8; }
-.tree-root.is-hot { fill: var(--accent); }
-
-.bud {
-  position: absolute; left: 0; top: 0;
-  width: 0; height: 0;
-  pointer-events: auto;
-  text-decoration: none;
-  color: var(--text);
-  opacity: 0;
-  will-change: transform;
-}
-.bud:focus-visible { outline: none; }
-.bud-text {
-  position: absolute;
-  display: block;
-  padding: 0 0.3rem 0.2rem;
-  white-space: nowrap;
-  text-shadow: 0 0 14px var(--bg), 0 0 4px var(--bg);
-}
-.bud.is-right .bud-text { left: 3px; top: -1px; transform: translateY(-100%); text-align: left; }
-.bud.is-left .bud-text { right: 3px; top: -1px; transform: translateY(-100%); text-align: right; }
-.bud-label {
-  display: inline;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  transition: color 0.2s;
-}
-.bud-res {
-  display: inline;
-  margin-left: 0.35rem;
-  font-size: 0.64rem;
-  letter-spacing: 0.06em;
-  text-transform: none;
-  color: var(--muted);
-}
-.bud:hover .bud-label, .bud:focus-visible .bud-label { color: var(--accent); }
-.bud:focus-visible .bud-text { outline: 1px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
-
-/* Grow in on load, retract when a section is open */
-.tree.is-ready .tree-limb {
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset 1.1s var(--ease) calc(0.25s + var(--i) * 0.08s), stroke-width 0.2s, stroke-opacity 0.2s;
-}
-.tree.is-ready .tree-root { opacity: 1; transition-delay: calc(0.2s + var(--i) * 0.08s); }
-.tree.is-ready .bud {
-  opacity: 1;
-  transition: opacity 0.6s var(--ease) calc(0.75s + var(--i) * 0.08s);
-}
-.tree.is-open .tree-limb { stroke-dashoffset: 1; transition: stroke-dashoffset 0.55s var(--ease) calc(var(--i) * 0.03s), stroke-width 0.2s, stroke-opacity 0.2s; }
-.tree.is-open .tree-root { opacity: 0; transition: opacity 0.3s; transition-delay: 0s; }
-.tree.is-open .bud { opacity: 0; pointer-events: none; transition: opacity 0.3s var(--ease) 0s; }
+.gl body.is-panel-open .vignette { opacity: 0; }
+.vignette { transition: opacity 0.6s var(--ease); }
 
 /* Split screen: the content fills exactly one half, the structure the other. A label on the
    left half of the screen opens its content on the left, and one on the right opens on the right. */
@@ -866,16 +774,11 @@ html:not(.gl) .zoom-caption { display: none; }
 
 /* Phones and narrow windows: the card is a bottom sheet, atoms above it */
 @media (max-width: 860px) {
-  .gl .hero { max-width: calc(100vw - 2 * var(--gutter)); }
-  .gl .hero-tagline, .gl .portrait { display: none; }
-  .gl .hero-content { margin-top: 0; }
-  .gl .hero h1 { font-size: 0.98rem; letter-spacing: 0.12em; }
-  .gl .hero-role { margin-bottom: 0.4rem; }
-  .gl .cv-link { margin-top: 0.1rem; }
+  .gl .wrapper { padding-top: 1.75rem; }
+  .gl .vignette { background: radial-gradient(ellipse 95% 48% at 50% 38%, var(--vignette) 0%, transparent 100%), radial-gradient(ellipse 130% 110% at 50% 50%, transparent 55%, var(--bg) 100%); }
+  .gl .portrait { width: 4.2rem; height: 4.2rem; }
   .gl .site-footer { font-size: 0.6rem; letter-spacing: 0.12em; }
   .gl .site-footer .credit { font-size: 0.58rem; }
-  .bud-label { font-size: 0.66rem; letter-spacing: 0.16em; }
-  .bud-res { font-size: 0.6rem; }
 
   .gl .panels, .gl body.card-left .panels {
     inset: auto 0 0 0; width: auto; height: 50vh;
