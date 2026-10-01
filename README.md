@@ -22,12 +22,13 @@ paravastu-lab/        proposed redesign of the Paravastu Lab website (self-conta
 - **Colors**: change `--accent` and the other tokens at the top of `style.css`.
 
 **Navigation**: the resting view is the fibril cross-section (one subunit from each protofilament, every
-heavy atom). Each section is a straight leader line from an amino acid in its own stretch of the sequence
-to a label, at scattered angles (placed by `layoutTree` in `main.js`, deterministic so it never moves).
-Opening one flies the camera to that section's own view of the structure (the `VIEWS` table in
-`fibril.js`: top, side, or zoomed into the core, turntable or still) and lights up the stretch of the
-Aβ42 sequence (equal slices, N → C, in tab order). Without WebGL2 the page falls back to the plain nav
-with centered overlay panels.
+heavy atom), as in the paper's Fig. 2. Each section is a callout: an angled line from an amino acid in its
+own stretch of the sequence to a short horizontal line with the label on it (placed by `layoutTree` in
+`main.js`: a seeded search, so it never moves). Opening one splits the screen 50/50: the content on the
+side its label is on, and the structure on the other half, flown to that section's own view (the `VIEWS`
+table in `fibril.js`: top, side, or zoomed into the core, turntable or still) with its stretch of the
+Aβ42 sequence lit up (equal slices, N → C, in tab order). Without WebGL2 the page falls back to the plain
+nav with centered overlay panels. On phones the content is the bottom half.
 
 Preview locally with `python3 -m http.server`, then open http://localhost:8000.
 

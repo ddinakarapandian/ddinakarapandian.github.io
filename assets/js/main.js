@@ -91,7 +91,7 @@
   var fib = window.Fibril && window.Fibril.ready ? window.Fibril : null;
   var SEQ = 'DAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA';
   var AA3 = { A: 'Ala', R: 'Arg', N: 'Asn', D: 'Asp', C: 'Cys', E: 'Glu', Q: 'Gln', G: 'Gly', H: 'His', I: 'Ile', L: 'Leu', K: 'Lys', M: 'Met', F: 'Phe', P: 'Pro', S: 'Ser', T: 'Thr', W: 'Trp', Y: 'Tyr', V: 'Val' };
-  var tree = null, caption = null, limbs = [], roots = [], buds = [], tags = [], sizes = [];
+  var tree = null, caption = null, limbs = [], roots = [], buds = [], tags = [], sizes = [], sides = [];
   if (fib) buildTree();
 
   function buildTree() {
@@ -105,7 +105,7 @@
     tree.appendChild(svg);
 
     panels.forEach(function (panel, i) {
-      var limb = document.createElementNS(NS, 'line');
+      var limb = document.createElementNS(NS, 'polyline');
       limb.setAttribute('class', 'tree-limb');
       limb.setAttribute('pathLength', '1');
       limb.style.setProperty('--i', i);
@@ -120,7 +120,7 @@
       bud.className = 'bud';
       bud.href = '#' + panel.id;
       bud.style.setProperty('--i', i);
-      bud.innerHTML = '<span class="bud-text"><span class="bud-label"></span><small class="bud-res"></small></span>';
+      bud.innerHTML = '<span class="bud-text"><span class="bud-label"></span> <small class="bud-res"></small></span>';
       bud.querySelector('.bud-label').textContent = panel.querySelector('h2').textContent;
       function hot(on) { limb.classList.toggle('is-hot', on); root.classList.toggle('is-hot', on); fib.hover(on ? i : -1); }
       bud.addEventListener('pointerenter', function () { hot(true); });
@@ -137,7 +137,12 @@
     caption.setAttribute('aria-hidden', 'true');
     document.body.appendChild(caption);
 
-    fib.onlayout = layoutTree;
+    var layoutTimer = 0, laidOut = false;
+    fib.onlayout = function () {
+      if (!laidOut) { laidOut = true; layoutTree(); return; }
+      clearTimeout(layoutTimer);
+      layoutTimer = setTimeout(layoutTree, 80);
+    };
     window.addEventListener('resize', measure);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
     measure();
@@ -156,7 +161,7 @@
     tags.forEach(function (t) { t.textContent = 'Ala42'; });   // widest tag, so sizes don't depend on the pick
     sizes = buds.map(function (b) {
       var t = b.querySelector('.bud-text');
-      return { w: t.offsetWidth + 12, h: t.offsetHeight + 8 };
+      return { w: t.offsetWidth + 10, h: t.offsetHeight + 2 };
     });
     fib.setStations(panels.length);
   }
@@ -183,10 +188,25 @@
     return ccw(a.a, b.a, b.e) !== ccw(a.e, b.a, b.e) && ccw(a.a, a.e, b.a) !== ccw(a.a, a.e, b.e);
   }
 
+  function distSq(px, py, ax, ay, bx, by) {
+    var dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy || 1)));
+    var qx = ax + dx * t - px, qy = ay + dy * t - py;
+    return qx * qx + qy * qy;
+  }
+  function polyHitsRect(pl, r) { return segHitsRect(pl.a.x, pl.a.y, pl.k.x, pl.k.y, r) || segHitsRect(pl.k.x, pl.k.y, pl.h.x, pl.h.y, r); }
+  function polyHitsPoly(p, q) {
+    return segHitsSeg({ a: p.a, e: p.k }, { a: q.a, e: q.k }) || segHitsSeg({ a: p.a, e: p.k }, { a: q.k, e: q.h }) ||
+           segHitsSeg({ a: p.k, e: p.h }, { a: q.a, e: q.k }) || segHitsSeg({ a: p.k, e: p.h }, { a: q.k, e: q.h });
+  }
+
+  // Each leader is an angled line from a carbon of the section's residues to a short horizontal
+  // line with the label sitting on it, like the callouts on a structure figure. Placement is a
+  // seeded random search: several scatterings are tried and the tidiest one is kept, so the
+  // result is the same on every load.
   function layoutTree() {
     var W = window.innerWidth, H = window.innerHeight, M = 14;
     var home = fib.homeAtoms(), atoms = home.atoms, cx = home.cx, cy = home.cy;
-    var rand = rng(11), placed = [];
+    var narrow = W < 640, ANGLES = narrow ? [0.9, 1.15, 1.35, 1.5] : [0.5, 0.75, 1.0, 1.3];   // phones: steeper, out to the free bands above and below
 
     // places the text must stay out of: the name block and the footer
     var avoid = [];
@@ -199,54 +219,83 @@
     var maxR = 1;
     atoms.forEach(function (a) { a.r = Math.hypot(a.x - cx, a.y - cy); maxR = Math.max(maxR, a.r); });
 
-    function labelRect(ex, ey, dx, dy, size) {
-      if (Math.abs(dx) >= 0.45) {
-        var right = dx > 0;
-        return { side: right ? 'right' : 'left', x0: right ? ex : ex - size.w, x1: right ? ex + size.w : ex, y0: ey - size.h / 2, y1: ey + size.h / 2 };
-      }
-      var down = dy > 0;
-      return { side: down ? 'bottom' : 'top', x0: ex - size.w / 2, x1: ex + size.w / 2, y0: down ? ey : ey - size.h, y1: down ? ey + size.h : ey };
-    }
+    // the carbons of each section's stretch, outermost first
+    var cands = panels.map(function (_, i) {
+      var seg = fib.segment(i);
+      return atoms.filter(function (a) { return a.res >= seg[0] && a.res <= seg[1] && a.kind === 0 && a.r > 20; })
+        .sort(function (u, v) { return v.r - u.r; }).slice(0, 44);
+    });
 
-    for (var i = 0; i < panels.length; i++) {
-      var seg = fib.segment(i), best = null, bestScore = -1e9, relaxed;
-      for (relaxed = 0; relaxed < 3 && !best; relaxed++) {   // 0: tidy, 1: tighter packing, 2: anything that fits
-        for (var q = 0; q < atoms.length; q++) {
-          var a = atoms[q];
-          if (a.res < seg[0] || a.res > seg[1] || a.kind !== 0 || a.r < 28) continue;   // carbons, clear of the centre
-          var dx = (a.x - cx) / a.r, dy = (a.y - cy) / a.r, reach = 0;
-          for (var j = 0; j < atoms.length; j++) reach = Math.max(reach, (atoms[j].x - cx) * dx + (atoms[j].y - cy) * dy);
-          for (var g = 0; g < 4; g++) {
-            var gap = 30 + rand() * 100, ex = cx + dx * (reach + gap), ey = cy + dy * (reach + gap);
-            var rect = labelRect(ex, ey, dx, dy, sizes[i]);
-            if (rect.x0 < M || rect.x1 > W - M || rect.y0 < M || rect.y1 > H - M) continue;
-            var bad = false, line = { a: { x: a.x, y: a.y }, e: { x: ex, y: ey } }, k2;
-            for (k2 = 0; k2 < avoid.length && !bad; k2++) {
-              if (segHitsRect(a.x, a.y, ex, ey, avoid[k2]) || rect.x1 > avoid[k2].x0 && rect.x0 < avoid[k2].x1 && rect.y1 > avoid[k2].y0 && rect.y0 < avoid[k2].y1) bad = true;
+    function attempt(seed) {
+      var rand = rng(seed), placed = [], out = [], cost = 0;
+      for (var i = 0; i < panels.length; i++) {
+        var size = sizes[i], best = null, bestScore = -1e9, pass;
+        for (pass = 0; pass < 3 && !best; pass++) {   // 0: tidy, 1: tighter packing, 2: anything that fits
+          for (var q = 0; q < cands[i].length; q++) {
+            var a = cands[i][q];
+            for (var an = 0; an < ANGLES.length; an++) {
+              for (var vs = -1; vs <= 1; vs += 2) {
+                for (var hs = 0; hs < 2; hs++) {
+                  var o0 = a.x >= cx ? 1 : -1, hd = hs ? -o0 : o0;
+                  var L = 34 + rand() * (narrow ? 230 : 120);
+                  var kx = a.x + hd * Math.cos(ANGLES[an]) * L, ky = a.y + vs * Math.sin(ANGLES[an]) * L;
+                  var hx = kx + hd * size.w;
+                  var rect = { x0: Math.min(kx, hx), x1: Math.max(kx, hx), y0: ky - size.h, y1: ky + 2 };
+                  if (rect.x0 < M || rect.x1 > W - M || rect.y0 < M || rect.y1 > H - M) continue;
+                  var pl = { a: { x: a.x, y: a.y }, k: { x: kx, y: ky }, h: { x: hx, y: ky } }, bad = false, k2;
+                  for (k2 = 0; k2 < avoid.length && !bad; k2++) {
+                    if (polyHitsRect(pl, avoid[k2]) || rect.x1 > avoid[k2].x0 && rect.x0 < avoid[k2].x1 && rect.y1 > avoid[k2].y0 && rect.y0 < avoid[k2].y1) bad = true;
+                  }
+                  var padX = pass ? 2 : 14, padY = pass ? 2 : 12;
+                  for (k2 = 0; k2 < placed.length && !bad && pass < 2; k2++) {
+                    var o = placed[k2];
+                    if (polyHitsPoly(pl, o) || polyHitsRect(pl, o.rect) || polyHitsRect(o, rect) ||
+                        (rect.x1 + padX > o.rect.x0 && rect.x0 - padX < o.rect.x1 && rect.y1 + padY > o.rect.y0 && rect.y0 - padY < o.rect.y1) ||
+                        (!pass && Math.hypot(a.x - o.a.x, a.y - o.a.y) < 30)) bad = true;
+                  }
+                  if (bad) continue;
+                  // keep the lines and text off the sticks
+                  var clutter = 0;
+                  for (var j = 0; j < atoms.length; j += 2) {
+                    var t = atoms[j];
+                    if (Math.hypot(t.x - a.x, t.y - a.y) < 14) continue;
+                    if (distSq(t.x, t.y, a.x, a.y, kx, ky) < 64 || distSq(t.x, t.y, kx, ky, hx, ky) < 100 ||
+                        (t.x > rect.x0 - 3 && t.x < rect.x1 + 3 && t.y > rect.y0 - 3 && t.y < rect.y1 + 3)) clutter++;
+                  }
+                  if (clutter > (pass === 0 ? 1 : pass === 1 ? 6 : 1e9)) continue;
+                  var score = 1.0 * (a.r / maxR) + 0.7 * rand() + (hs ? 0 : 0.25) - 0.03 * clutter - 0.002 * L;
+                  if (score > bestScore) { bestScore = score; best = { atom: a, a: pl.a, k: pl.k, h: pl.h, rect: rect, hd: hd }; }
+                }
+              }
             }
-            var padX = relaxed ? 2 : 10, padY = relaxed ? 2 : 8;
-            for (k2 = 0; k2 < placed.length && !bad && relaxed < 2; k2++) {
-              var o = placed[k2];
-              if (segHitsSeg(line, o) || segHitsRect(a.x, a.y, ex, ey, o.rect) || segHitsRect(o.a.x, o.a.y, o.e.x, o.e.y, rect) ||
-                  (rect.x1 + padX > o.rect.x0 && rect.x0 - padX < o.rect.x1 && rect.y1 + padY > o.rect.y0 && rect.y0 - padY < o.rect.y1) ||
-                  (!relaxed && Math.hypot(a.x - o.a.x, a.y - o.a.y) < 30)) bad = true;
-            }
-            if (bad) continue;
-            var score = 1.1 * (a.r / maxR) + 0.9 * rand() - 0.0015 * Math.hypot(ex - a.x, ey - a.y);
-            if (score > bestScore) { bestScore = score; best = { atom: a, a: line.a, e: line.e, rect: rect, dx: dx, dy: dy }; }
           }
         }
+        if (best) { placed.push(best); cost += (pass - 1) * 10; } else cost += 100;
+        out[i] = best;
       }
-      if (!best) continue;
-      placed.push(best);
-      var s = best.atom;
-      limbs[i].setAttribute('x1', f(s.x + best.dx * 5)); limbs[i].setAttribute('y1', f(s.y + best.dy * 5));
-      limbs[i].setAttribute('x2', f(best.e.x)); limbs[i].setAttribute('y2', f(best.e.y));
-      roots[i].setAttribute('cx', f(s.x)); roots[i].setAttribute('cy', f(s.y));
-      tags[i].textContent = AA3[SEQ[s.res - 1]] + s.res;
-      buds[i].className = 'bud is-' + best.rect.side;
-      buds[i].style.transform = 'translate3d(' + f(best.e.x) + 'px,' + f(best.e.y) + 'px,0)';
+      return { out: out, cost: cost };
     }
+
+    var chosen = null;
+    for (var seed = 11; seed < 11 + 14; seed++) {
+      var tryOut = attempt(seed);
+      if (!chosen || tryOut.cost < chosen.cost) chosen = tryOut;
+      if (chosen.cost === 0) break;
+    }
+
+    chosen.out.forEach(function (best, i) {
+      if (!best) return;
+      var s0 = best.atom, dir = Math.hypot(best.k.x - best.a.x, best.k.y - best.a.y) || 1;
+      var sx = s0.x + (best.k.x - best.a.x) / dir * 5, sy = s0.y + (best.k.y - best.a.y) / dir * 5;   // leave the ring clear
+      limbs[i].setAttribute('points', f(sx) + ',' + f(sy) + ' ' + f(best.k.x) + ',' + f(best.k.y) + ' ' + f(best.h.x) + ',' + f(best.h.y));
+      roots[i].setAttribute('cx', f(s0.x));
+      roots[i].setAttribute('cy', f(s0.y));
+      tags[i].textContent = AA3[SEQ[s0.res - 1]] + s0.res;
+      buds[i].className = 'bud is-' + (best.hd > 0 ? 'right' : 'left');
+      buds[i].style.transform = 'translate3d(' + f(best.k.x) + 'px,' + f(best.k.y) + 'px,0)';
+      // a label on the left half of the screen opens its content on the left, and vice versa
+      sides[i] = (best.rect.x0 + best.rect.x1) / 2 < W / 2 ? 'left' : 'right';
+    });
   }
   function f(v) { return v.toFixed(1); }
 
@@ -273,9 +322,11 @@
     document.title = panel.querySelector('h2').textContent + ' · Daniel M. Dinakarapandian';
     panel.focus({ preventScroll: true });
     if (fib) {
+      var n = ids.indexOf(id), side = sides[n] || 'right';
+      body.classList.toggle('card-left', side === 'left');
       tree.classList.add('is-open');
-      setCaption(ids.indexOf(id));
-      fib.focus(ids.indexOf(id));
+      setCaption(n);
+      fib.focus(n, side);
     }
     countUp(panel);
   }

@@ -779,16 +779,14 @@ sup { color: var(--accent); font-size: 0.7em; }
 .bud-text {
   position: absolute;
   display: block;
-  padding: 0.35rem 0.4rem;
+  padding: 0 0.3rem 0.2rem;
   white-space: nowrap;
   text-shadow: 0 0 14px var(--bg), 0 0 4px var(--bg);
 }
-.bud.is-right .bud-text { left: 4px; top: 0; transform: translateY(-50%); text-align: left; }
-.bud.is-left .bud-text { right: 4px; top: 0; transform: translateY(-50%); text-align: right; }
-.bud.is-top .bud-text { left: 0; top: 0; transform: translate(-50%, -100%); text-align: center; }
-.bud.is-bottom .bud-text { left: 0; top: 0; transform: translate(-50%, 0); text-align: center; }
+.bud.is-right .bud-text { left: 3px; top: -1px; transform: translateY(-100%); text-align: left; }
+.bud.is-left .bud-text { right: 3px; top: -1px; transform: translateY(-100%); text-align: right; }
 .bud-label {
-  display: block;
+  display: inline;
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.2em;
@@ -796,8 +794,8 @@ sup { color: var(--accent); font-size: 0.7em; }
   transition: color 0.2s;
 }
 .bud-res {
-  display: block;
-  margin-top: 0.1rem;
+  display: inline;
+  margin-left: 0.35rem;
   font-size: 0.64rem;
   letter-spacing: 0.06em;
   text-transform: none;
@@ -820,23 +818,29 @@ sup { color: var(--accent); font-size: 0.7em; }
 .tree.is-open .tree-root { opacity: 0; transition: opacity 0.3s; transition-delay: 0s; }
 .tree.is-open .bud { opacity: 0; pointer-events: none; transition: opacity 0.3s var(--ease) 0s; }
 
-/* Content card: a drawer beside the atoms, arriving as the camera lands */
+/* Split screen: the content fills exactly one half, the structure the other. A label on the
+   left half of the screen opens its content on the left, and one on the right opens on the right. */
 .gl .panels {
   inset: 0 0 0 auto;
-  width: min(46rem, 52vw);
+  width: 50vw;
+  padding: 0;
   pointer-events: auto;
-  padding: clamp(0.75rem, 3vh, 1.75rem) clamp(0.75rem, 2vw, 1.75rem) clamp(0.75rem, 3vh, 1.75rem) 0;
-  background: none;
+  background: var(--panel-solid);
+  border-left: 1px solid var(--line-soft);
   transition: opacity 0.3s var(--ease), visibility 0s linear 0.3s;
 }
-.gl body.is-panel-open .panels { transition: opacity 0.3s var(--ease), visibility 0s; }
+.gl body.card-left .panels { inset: 0 auto 0 0; border-left: 0; border-right: 1px solid var(--line-soft); }
+.gl body.is-panel-open .panels { transition: opacity 0.3s var(--ease) 0.6s, visibility 0s; }
 .gl .panel {
-  max-width: none; margin: 0;
-  background: color-mix(in srgb, var(--panel-solid) 96%, transparent);
+  max-width: none; margin: 0; min-height: 100%;
+  padding: clamp(1.5rem, 4vw, 3.25rem);
+  background: none; border: 0; border-radius: 0; box-shadow: none;
   backdrop-filter: none; -webkit-backdrop-filter: none;   /* blurring a moving canvas every frame is what makes it stutter */
 }
 .gl body.is-panel-open .panel.is-active { animation: card-in 0.7s var(--ease) 0.7s both; }
+.gl body.card-left.is-panel-open .panel.is-active { animation-name: card-in-left; }
 @keyframes card-in { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes card-in-left { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
 .gl body.is-panel-open .hero,
 .gl body.is-panel-open .site-footer { opacity: 0; transform: none; filter: none; }
 
@@ -857,6 +861,7 @@ sup { color: var(--accent); font-size: 0.7em; }
 }
 .zoom-caption::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 0.6rem; border-radius: 50%; background: var(--accent); }
 .gl body.is-panel-open .zoom-caption { opacity: 1; transition-delay: 1s; }
+.gl body.card-left .zoom-caption { left: auto; right: var(--gutter); }
 html:not(.gl) .zoom-caption { display: none; }
 
 /* Phones and narrow windows: the card is a bottom sheet, atoms above it */
@@ -872,7 +877,13 @@ html:not(.gl) .zoom-caption { display: none; }
   .bud-label { font-size: 0.66rem; letter-spacing: 0.16em; }
   .bud-res { font-size: 0.6rem; }
 
-  .gl .panels { inset: auto 0 0 0; width: auto; height: 62vh; padding: 0 0.6rem 0.6rem; }
+  .gl .panels, .gl body.card-left .panels {
+    inset: auto 0 0 0; width: auto; height: 50vh;
+    border: 0; border-top: 1px solid var(--line-soft); border-radius: 14px 14px 0 0;
+  }
+  .gl .panel { padding: 1.4rem 1.25rem 2rem; }
+  .gl body.card-left.is-panel-open .panel.is-active { animation-name: sheet-in; }
+  .gl body.card-left .zoom-caption { left: var(--gutter); right: auto; }
   .gl body.is-panel-open .panel.is-active { animation-name: sheet-in; }
   @keyframes sheet-in { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
   .zoom-caption { bottom: auto; top: 1rem; font-size: 0.62rem; letter-spacing: 0.1em; }

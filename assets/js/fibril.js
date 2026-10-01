@@ -259,7 +259,7 @@
   }
 
   // ---- State ----
-  var view = { W: 0, H: 0, dpr: 1, dprMax: 1.5, homeZoom: 1, visW: 1, visH: 1, home: { x: 0, y: 0 }, zoomC: { x: 0, y: 0 } };
+  var view = { W: 0, H: 0, dpr: 1, dprMax: 1.5, homeZoom: 1, visW: 1, visH: 1, home: { x: 0, y: 0 }, side: 'right' };
   var pfA = [0.85, 0.76, 0.49], pfB = [0.55, 0.68, 0.85];
   var colA = [0.78, 0.84, 0.92], colB = [0.85, 0.76, 0.49], bg = [0.03, 0.04, 0.06];
   var elN, elO, elS;
@@ -273,7 +273,7 @@
   function homeCam() {
     return {
       tx: 0, ty: PAIR_Y, tz: 0, ax: HOME.ax, roll: HOME.roll, base: HOME.spin, phase: 0, rate: 0,
-      zoom: view.homeZoom, far: 0.04, near: 0.04, soft: 0.015, depth: 99, amt: 0, r0: 1, r1: 6
+      cx: view.home.x, cy: view.home.y, zoom: view.homeZoom, far: 0.04, near: 0.04, soft: 0.015, depth: 99, amt: 0, r0: 1, r1: 6
     };
   }
 
@@ -293,8 +293,8 @@
     colB = triplet(cs.getPropertyValue('--fibril-b'), colB);
     bg = hex(cs.getPropertyValue('--bg'), bg);
     isLight = lightQuery.matches;
-    pfA = colB;                                              // tan, like the paper's figure
-    pfB = isLight ? [0.2, 0.36, 0.65] : [0.55, 0.68, 0.85];  // blue
+    pfA = hex(cs.getPropertyValue('--accent'), colB);       // the two folds take the site's gold and text colours
+    pfB = hex(cs.getPropertyValue('--text'), colA);
     elN = isLight ? [0.14, 0.33, 0.75] : [0.38, 0.55, 0.98];
     elO = isLight ? [0.75, 0.19, 0.2] : [0.95, 0.38, 0.38];
     elS = isLight ? [0.62, 0.47, 0.04] : [0.93, 0.81, 0.36];
@@ -317,16 +317,11 @@
     var top = api.reserve.top || 0, bottom = api.reserve.bottom || 0;
     view.home.x = W / 2;
     view.home.y = (top + H - bottom) / 2;
-    view.homeZoom = (W < 640 ? 0.74 : 0.74) * Math.min(W, H - top - bottom) / 2.1;
+    view.homeZoom = (W < 640 ? 0.6 : 0.7) * Math.min(W, H - top - bottom) / 2.1;
 
-    // Zoomed views fill the part of the screen the content card leaves free
-    if (sheetQuery.matches) {
-      view.visW = W; view.visH = H * 0.4;
-      view.zoomC.x = W / 2; view.zoomC.y = view.visH / 2 + 8;
-    } else {
-      view.visW = W - Math.min(736, W * 0.52); view.visH = H;
-      view.zoomC.x = view.visW / 2; view.zoomC.y = H / 2;
-    }
+    // Zoomed views fill the other half of the screen from the content (a bottom half on phones)
+    if (sheetQuery.matches) { view.visW = W; view.visH = H * 0.5; }
+    else { view.visW = W / 2; view.visH = H; }
 
     if (!tween) {
       if (focusIndex < 0) { var h = homeCam(); h.r0 = cam.r0; h.r1 = cam.r1; cam = h; }
@@ -362,6 +357,12 @@
     return { atoms: out, cx: view.home.x, cy: view.home.y, scale: h.zoom };
   };
 
+  // Where the structure sits: the half of the screen opposite the content
+  function zoomCenter() {
+    if (sheetQuery.matches) return { x: view.W / 2, y: view.visH / 2 };
+    return { x: view.side === 'left' ? view.W * 0.75 : view.W * 0.25, y: view.H / 2 };
+  }
+
   // Camera for section i: a point to look at, an orientation, a zoom and how thick a slice to keep
   function camFor(i) {
     var v = VIEWS[i % VIEWS.length], seg = api.segment(i);
@@ -371,9 +372,10 @@
       var kk = K0 + v.sub, q = centroid(seg[0], seg[1]);
       T = [q[0] * subC[kk] + q[2] * subS[kk], q[1] + subY[kk], -q[0] * subS[kk] + q[2] * subC[kk]];
     }
+    var zc = zoomCenter();
     return {
       tx: T[0], ty: T[1], tz: T[2], ax: v.ax, roll: v.roll, base: v.spin, phase: 0, rate: v.rate / 1000,
-      zoom: Math.min(view.visW, view.visH) / v.wu, far: v.far, near: v.near, soft: 0.06, depth: v.depth || 99,
+      cx: zc.x, cy: zc.y, zoom: Math.min(view.visW, view.visH) / (v.wu * 0.8), far: v.far, near: v.near, soft: 0.06, depth: v.depth || 99,
       amt: 1, r0: seg[0], r1: seg[1]
     };
   }
@@ -386,8 +388,9 @@
     if (!moving()) render();
   };
 
-  api.focus = function (i) {
+  api.focus = function (i, side) {
     focusIndex = i;
+    if (side) view.side = side;
     var b;
     if (i < 0) { b = homeCam(); b.r0 = cam.r0; b.r1 = cam.r1; }
     else { b = camFor(i); if (cam.amt < 0.02) { cam.r0 = b.r0; cam.r1 = b.r1; } }
@@ -405,6 +408,7 @@
     var p = Math.min(1, (now - tween.t0) / tween.dur), e = ease(p), a = tween.a, b = tween.b;
     var pos = ease(Math.min(1, p / 0.9));
     cam.amt = lerp(a.amt, b.amt, e);
+    cam.cx = lerp(a.cx, b.cx, e); cam.cy = lerp(a.cy, b.cy, e);
     cam.tx = lerp(a.tx, b.tx, pos); cam.ty = lerp(a.ty, b.ty, pos); cam.tz = lerp(a.tz, b.tz, pos);
     cam.ax = lerp(a.ax, b.ax, e); cam.roll = lerp(a.roll, b.roll, e);
     cam.base = lerp(a.base, b.base, e); cam.phase = lerp(a.phase, b.phase, e);
@@ -441,7 +445,7 @@
       cy: Math.cos(spin), sy: Math.sin(spin),
       cx: Math.cos(cam.ax), sx: Math.sin(cam.ax),
       cr: Math.cos(cam.roll), sr: Math.sin(cam.roll),
-      px: lerp(view.home.x, view.zoomC.x, cam.amt), py: lerp(view.home.y, view.zoomC.y, cam.amt)
+      px: cam.cx, py: cam.cy
     };
     var toward = Math.sin(cam.ax) < 0 ? -1 : 1;   // which end of the axis is nearer the viewer
 
