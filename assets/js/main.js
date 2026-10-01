@@ -134,7 +134,7 @@
     caption.setAttribute('aria-hidden', 'true');
     document.body.appendChild(caption);
 
-    fib.onframe = layoutTree;
+    fib.onlayout = layoutTree;
     window.addEventListener('resize', measure);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
     measure();
