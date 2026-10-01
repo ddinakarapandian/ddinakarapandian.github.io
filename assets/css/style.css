@@ -826,7 +826,11 @@ sup { color: var(--accent); font-size: 0.7em; }
   transition: opacity 0.3s var(--ease), visibility 0s linear 0.3s;
 }
 .gl body.is-panel-open .panels { transition: opacity 0.3s var(--ease), visibility 0s; }
-.gl .panel { max-width: none; margin: 0; background: color-mix(in srgb, var(--panel-solid) 95%, transparent); }
+.gl .panel {
+  max-width: none; margin: 0;
+  background: color-mix(in srgb, var(--panel-solid) 96%, transparent);
+  backdrop-filter: none; -webkit-backdrop-filter: none;   /* blurring a moving canvas every frame is what makes it stutter */
+}
 .gl body.is-panel-open .panel.is-active { animation: card-in 0.7s var(--ease) 0.7s both; }
 @keyframes card-in { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
 .gl body.is-panel-open .hero,
