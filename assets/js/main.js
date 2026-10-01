@@ -83,12 +83,15 @@
     return a;
   }
 
-  // ---- Tree of branches (WebGL mode) ----
-  // Each section is a branch that grows from a station on the fibril axis;
-  // fibril.js does the rendering and the camera, this only places the DOM.
+  // ---- Section labels (WebGL mode) ----
+  // The resting view is the fibril cross-section, as in the paper's Fig. 2. Each section is a
+  // straight leader line from an amino acid in its own stretch of the sequence out to a label,
+  // at scattered angles and lengths, like the callouts on a structure figure. fibril.js does the
+  // rendering and the camera, this only places the DOM.
   var fib = window.Fibril && window.Fibril.ready ? window.Fibril : null;
   var SEQ = 'DAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVVIA';
-  var tree = null, caption = null, limbs = [], roots = [], buds = [], widths = [], avoid = null;
+  var AA3 = { A: 'Ala', R: 'Arg', N: 'Asn', D: 'Asp', C: 'Cys', E: 'Glu', Q: 'Gln', G: 'Gly', H: 'His', I: 'Ile', L: 'Leu', K: 'Lys', M: 'Met', F: 'Phe', P: 'Pro', S: 'Ser', T: 'Thr', W: 'Trp', Y: 'Tyr', V: 'Val' };
+  var tree = null, caption = null, limbs = [], roots = [], buds = [], tags = [], sizes = [];
   if (fib) buildTree();
 
   function buildTree() {
@@ -102,7 +105,7 @@
     tree.appendChild(svg);
 
     panels.forEach(function (panel, i) {
-      var limb = document.createElementNS(NS, 'path');
+      var limb = document.createElementNS(NS, 'line');
       limb.setAttribute('class', 'tree-limb');
       limb.setAttribute('pathLength', '1');
       limb.style.setProperty('--i', i);
@@ -114,18 +117,18 @@
       svg.appendChild(root);
 
       var bud = document.createElement('a');
-      bud.className = 'bud ' + (i % 2 ? 'is-left' : 'is-right');
+      bud.className = 'bud';
       bud.href = '#' + panel.id;
       bud.style.setProperty('--i', i);
-      bud.innerHTML = '<span class="bud-dot"></span><span class="bud-label"></span>';
-      bud.lastChild.textContent = panel.querySelector('h2').textContent;
-      function hot(on) { limb.classList.toggle('is-hot', on); root.classList.toggle('is-hot', on); }
+      bud.innerHTML = '<span class="bud-text"><span class="bud-label"></span><small class="bud-res"></small></span>';
+      bud.querySelector('.bud-label').textContent = panel.querySelector('h2').textContent;
+      function hot(on) { limb.classList.toggle('is-hot', on); root.classList.toggle('is-hot', on); fib.hover(on ? i : -1); }
       bud.addEventListener('pointerenter', function () { hot(true); });
       bud.addEventListener('pointerleave', function () { hot(false); });
       bud.addEventListener('focus', function () { hot(true); });
       bud.addEventListener('blur', function () { hot(false); });
       tree.appendChild(bud);
-      limbs.push(limb); roots.push(root); buds.push(bud);
+      limbs.push(limb); roots.push(root); buds.push(bud); tags.push(bud.querySelector('.bud-res'));
     });
     document.body.appendChild(tree);
 
@@ -139,45 +142,110 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
     measure();
 
-    // Grow the branches in once the first frame is up
+    // Draw the lines out once the first frame is up
     requestAnimationFrame(function () { requestAnimationFrame(function () { tree.classList.add('is-ready'); }); });
   }
 
-  // On narrow screens the name block owns the top and the footer the bottom,
-  // so the tree is laid out in what's left. Labels are re-measured for the branch lengths.
+  // On narrow screens the name block owns the top and the footer the bottom, so the
+  // structure sits in what's left. Labels are measured so they can be placed without overlap.
   function measure() {
     var hero = document.querySelector('.hero');
     var narrow = window.innerWidth <= 860;
     fib.reserve.top = narrow && hero ? hero.getBoundingClientRect().bottom + 6 : 0;
     fib.reserve.bottom = narrow ? 56 : 0;
-    widths = buds.map(function (b) { return b.lastChild.offsetWidth; });
-    var r = hero && !narrow ? hero.getBoundingClientRect() : null;
-    avoid = r ? { right: r.right, top: r.top - 24, bottom: r.bottom + 24 } : null;
+    tags.forEach(function (t) { t.textContent = 'Ala42'; });   // widest tag, so sizes don't depend on the pick
+    sizes = buds.map(function (b) {
+      var t = b.querySelector('.bud-text');
+      return { w: t.offsetWidth + 12, h: t.offsetHeight + 8 };
+    });
     fib.setStations(panels.length);
   }
 
+  // small deterministic generator, so the scatter is the same on every load
+  function rng(seed) {
+    return function () {
+      seed = (seed + 0x6D2B79F5) | 0;
+      var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function inRect(x, y, r) { return x >= r.x0 && x <= r.x1 && y >= r.y0 && y <= r.y1; }
+  function segHitsRect(ax, ay, bx, by, r) {
+    for (var s = 0; s <= 24; s++) {
+      var t = s / 24;
+      if (inRect(ax + (bx - ax) * t, ay + (by - ay) * t, r)) return true;
+    }
+    return false;
+  }
+  function segHitsSeg(a, b) {
+    function ccw(p, q, r) { return (r.y - p.y) * (q.x - p.x) > (q.y - p.y) * (r.x - p.x); }
+    return ccw(a.a, b.a, b.e) !== ccw(a.e, b.a, b.e) && ccw(a.a, a.e, b.a) !== ccw(a.a, a.e, b.e);
+  }
+
   function layoutTree() {
-    var W = window.innerWidth, H = window.innerHeight, M = 18;
+    var W = window.innerWidth, H = window.innerHeight, M = 14;
+    var home = fib.homeAtoms(), atoms = home.atoms, cx = home.cx, cy = home.cy;
+    var rand = rng(11), placed = [];
+
+    // places the text must stay out of: the name block and the footer
+    var avoid = [];
+    ['.hero', '.site-footer'].forEach(function (sel) {
+      var el = document.querySelector(sel);
+      if (!el) return;
+      var r = el.getBoundingClientRect();
+      avoid.push({ x0: r.left - 12, y0: r.top - 12, x1: r.right + 12, y1: r.bottom + 12 });
+    });
+    var maxR = 1;
+    atoms.forEach(function (a) { a.r = Math.hypot(a.x - cx, a.y - cy); maxR = Math.max(maxR, a.r); });
+
+    function labelRect(ex, ey, dx, dy, size) {
+      if (Math.abs(dx) >= 0.45) {
+        var right = dx > 0;
+        return { side: right ? 'right' : 'left', x0: right ? ex : ex - size.w, x1: right ? ex + size.w : ex, y0: ey - size.h / 2, y1: ey + size.h / 2 };
+      }
+      var down = dy > 0;
+      return { side: down ? 'bottom' : 'top', x0: ex - size.w / 2, x1: ex + size.w / 2, y0: down ? ey : ey - size.h, y1: down ? ey + size.h : ey };
+    }
+
     for (var i = 0; i < panels.length; i++) {
-      var pt = fib.project(i);
-      var side = i % 2 ? -1 : 1;
-      // v: perpendicular to the trunk, pointing to this branch's side; u: along it, toward the top
-      var vx = -pt.uy * side, vy = pt.ux * side;
-      // Keep left-hand labels clear of the name block when they sit at its height
-      var edge = M;
-      if (side < 0 && avoid && pt.y > avoid.top - 60 && pt.y < avoid.bottom + 60) edge = avoid.right + 28;
-      var room = (side > 0 ? W - M - pt.x : pt.x - edge) - (widths[i] || 90) - 16;
-      var pref = Math.max(70, Math.min(W * 0.22, 300)) * (0.82 + 0.36 * ((i * 0.618) % 1));
-      var L = Math.max(34, Math.min(pref, room));
-      var rise = Math.min(0.3 * L, Math.max(0, pt.y - 40));
-      var ex = pt.x + vx * L + pt.ux * rise;
-      var ey = Math.max(34, Math.min(H - 34, pt.y + vy * L + pt.uy * rise));
-      var c1x = pt.x + vx * L * 0.55, c1y = pt.y + vy * L * 0.55;
-      var c2x = ex - vx * L * 0.3, c2y = ey - vy * L * 0.3 - rise * 0.2;
-      limbs[i].setAttribute('d', 'M' + f(pt.x) + ' ' + f(pt.y) + 'C' + f(c1x) + ' ' + f(c1y) + ',' + f(c2x) + ' ' + f(c2y) + ',' + f(ex) + ' ' + f(ey));
-      roots[i].setAttribute('cx', f(pt.x));
-      roots[i].setAttribute('cy', f(pt.y));
-      buds[i].style.transform = 'translate3d(' + f(ex) + 'px,' + f(ey) + 'px,0)';
+      var seg = fib.segment(i), best = null, bestScore = -1e9, relaxed;
+      for (relaxed = 0; relaxed < 3 && !best; relaxed++) {   // 0: tidy, 1: tighter packing, 2: anything that fits
+        for (var q = 0; q < atoms.length; q++) {
+          var a = atoms[q];
+          if (a.res < seg[0] || a.res > seg[1] || a.kind !== 0 || a.r < 28) continue;   // carbons, clear of the centre
+          var dx = (a.x - cx) / a.r, dy = (a.y - cy) / a.r, reach = 0;
+          for (var j = 0; j < atoms.length; j++) reach = Math.max(reach, (atoms[j].x - cx) * dx + (atoms[j].y - cy) * dy);
+          for (var g = 0; g < 4; g++) {
+            var gap = 30 + rand() * 100, ex = cx + dx * (reach + gap), ey = cy + dy * (reach + gap);
+            var rect = labelRect(ex, ey, dx, dy, sizes[i]);
+            if (rect.x0 < M || rect.x1 > W - M || rect.y0 < M || rect.y1 > H - M) continue;
+            var bad = false, line = { a: { x: a.x, y: a.y }, e: { x: ex, y: ey } }, k2;
+            for (k2 = 0; k2 < avoid.length && !bad; k2++) {
+              if (segHitsRect(a.x, a.y, ex, ey, avoid[k2]) || rect.x1 > avoid[k2].x0 && rect.x0 < avoid[k2].x1 && rect.y1 > avoid[k2].y0 && rect.y0 < avoid[k2].y1) bad = true;
+            }
+            var padX = relaxed ? 2 : 10, padY = relaxed ? 2 : 8;
+            for (k2 = 0; k2 < placed.length && !bad && relaxed < 2; k2++) {
+              var o = placed[k2];
+              if (segHitsSeg(line, o) || segHitsRect(a.x, a.y, ex, ey, o.rect) || segHitsRect(o.a.x, o.a.y, o.e.x, o.e.y, rect) ||
+                  (rect.x1 + padX > o.rect.x0 && rect.x0 - padX < o.rect.x1 && rect.y1 + padY > o.rect.y0 && rect.y0 - padY < o.rect.y1) ||
+                  (!relaxed && Math.hypot(a.x - o.a.x, a.y - o.a.y) < 30)) bad = true;
+            }
+            if (bad) continue;
+            var score = 1.1 * (a.r / maxR) + 0.9 * rand() - 0.0015 * Math.hypot(ex - a.x, ey - a.y);
+            if (score > bestScore) { bestScore = score; best = { atom: a, a: line.a, e: line.e, rect: rect, dx: dx, dy: dy }; }
+          }
+        }
+      }
+      if (!best) continue;
+      placed.push(best);
+      var s = best.atom;
+      limbs[i].setAttribute('x1', f(s.x + best.dx * 5)); limbs[i].setAttribute('y1', f(s.y + best.dy * 5));
+      limbs[i].setAttribute('x2', f(best.e.x)); limbs[i].setAttribute('y2', f(best.e.y));
+      roots[i].setAttribute('cx', f(s.x)); roots[i].setAttribute('cy', f(s.y));
+      tags[i].textContent = AA3[SEQ[s.res - 1]] + s.res;
+      buds[i].className = 'bud is-' + best.rect.side;
+      buds[i].style.transform = 'translate3d(' + f(best.e.x) + 'px,' + f(best.e.y) + 'px,0)';
     }
   }
   function f(v) { return v.toFixed(1); }
