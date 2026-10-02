@@ -41,7 +41,7 @@
   var TAU = Math.PI * 2;
   var STRIDE = 6;                // numbers per atom in abeta-atoms.js
   var RAD = [0.36, 0.34, 0.32, 0.5, 0.2];   // ball radii in Å: C N O S H
-  var STICK_R = 0.12;            // bond radius, Å
+  var STICK_R = 0.14;            // bond radius, Å
 
   // ---- Camera ----
   var CAM = 6.5;                 // perspective distance, model units
@@ -56,12 +56,14 @@
   //   wu     model units of fibril that fit across the free half of the screen
   //   far / near   how far (units) the cartoon is kept behind / in front of the focus along the axis
   //   sk     how far (units) the ball-and-stick detail reaches along the axis
+  //   clip   ribbons nearer the viewer than this (model units) are cut away so the sticks show
+  //   both   1 = keep both protofilaments' cartoon, otherwise only the focus subunit's
   //   depth  optional cut either side of the focus in view depth (side views)
   //   rate   turntable speed, rad/s (about half a degree a second); 0 = holds still
   //   xs     1 = the cross-section (every heavy atom as sticks, no cartoon)
   var VIEWS = [
     { sub: 'axis', ax: 1.5,  roll: -0.35, spin: 0.2, rate: 0.006, wu: 2.3, far: 0.04, near: 0.04, sk: 0.04, xs: 1 },                  // About: the cross-section
-    { sub: 0,      ax: 0.2,  roll: 0.0,   spin: 0.5, rate: 0.012, wu: 1.4, far: 0.45, near: 0.45, sk: 0.1,  depth: 0.5 },             // Research: side, turntable
+    { sub: 0,      ax: 0.2,  roll: 0.0,   spin: 0.5, rate: 0.012, wu: 1.5, far: 0.4,  near: 0.4,  sk: 0.1,  clip: 0.45, both: 1 },             // Research: side, turntable
     { sub: 1,      ax: 0.95, roll: -0.5,  spin: 1.0, rate: 0.008, wu: 0.8, far: 0.14, near: 0.04, sk: 0.1 },                          // Publications: into the core
     { sub: 0,      ax: 0.55, roll: 0.25,  spin: 2.2, rate: 0,     wu: 1.1, far: 0.3,  near: 0.3,  sk: 0.1,  depth: 0.6 },             // Experience: oblique, still
     { sub: 1,      ax: 1.4,  roll: -0.9,  spin: 0.0, rate: 0,     wu: 1.0, far: 0.16, near: 0.04, sk: 0.1 },                          // Honors: top, zoomed, still
@@ -138,6 +140,13 @@
     'float cut(float z2) { return 1.0 - smoothstep(uDepth * 0.7, uDepth, abs(z2)); }',
     'vec3 element(float kind) { return kind < 0.5 ? vec3(-1.0) : (kind < 1.5 ? uN : (kind < 2.5 ? uO : (kind < 3.5 ? uS : uH))); }',
     'const vec3 LIGHT = vec3(-0.42, 0.58, 0.69);',
+    // Fades are done by ordered dithering (opaque fragments, some discarded) so faded parts never
+    // write depth for fragments you can see through, and cut edges don't show open ends.
+    'float bayer(vec2 p) {',
+    '  int x = int(mod(p.x, 4.0)), y = int(mod(p.y, 4.0));',
+    '  const float M[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);',
+    '  return (M[x + y * 4] + 0.5) / 16.0;',
+    '}',
     // diffuse + a broad, soft highlight + a faint rim, on a colour
     'vec3 lit(vec3 col, vec3 n, float spec) {',
     '  float d = max(dot(n, LIGHT), 0.0);',
@@ -147,31 +156,37 @@
     '}'
   ].join('\n');
 
+  // Cartoon. Where the section's own residues are, the ribbon gives way to the sticks (as when a
+  // selection is shown as ball-and-stick), ribbons in front of that are clipped, and anything
+  // clipped shows its inside as a flat colour so cut edges look solid, not like open tubes.
   var RIB_VS = COMMON + '\n' + DETAIL + '\n' + [
     'in vec3 aPos; in vec3 aNrm; in float aRes; uniform float uSk;',
-    'out vec3 vN; out vec3 vCol; out float vA; out float vCut;',
+    'out vec3 vN; out vec3 vCol; out float vA; out float vZ; out float vHn; out float vNear;',
     'void main() {',
     '  vec3 v = viewPos(aPos); float p; gl_Position = clipPos(toPx(v, p), v.z);',
     '  vN = viewDir(aNrm);',
-    '  vCut = cut(v.z);',
-    '  vec3 base = (aPf > 0.5 ? uPfB : uPfA) * (1.0 + 0.12 * sin(aInst.z * 37.0));',
+    '  vec3 base = aPf > 0.5 ? uPfB : uPfA;',
     '  float hi = hiOf(aRes);',
-    '  vec3 col = mix(base, mix(base * 0.78, base * 1.3 + 0.05, hi), uMix);',
+    '  vec3 col = mix(base, mix(mix(base, uBg, 0.4), base * 1.1 + 0.04, hi), uMix);   // the rest recedes',
     '  float dep = clamp((v.z + 1.8) / 3.6, 0.0, 1.0);',
-    '  vCol = mix(uBg, col, 0.5 + 0.5 * dep);',
-    '  float near = 1.0 - smoothstep(uSk, uSk + 0.04, abs(aInst.z - uT.y));',
-    '  vA = aInst.w * (1.0 - 0.72 * hi * near * uMix);   // ghosted where the sticks are, so they show through',
+    '  vCol = mix(uBg, col, 0.6 + 0.4 * dep);',
+    '  vNear = (1.0 - smoothstep(uSk, uSk + 0.01, abs(aInst.z - uT.y))) * uMix;',
+    '  vHn = hi * vNear;',
+    '  vA = aInst.w; vZ = v.z;',
     '}'
   ].join('\n');
   var RIB_FS = [
     '#version 300 es', 'precision highp float;',
     DETAIL,
-    'in vec3 vN; in vec3 vCol; in float vA; in float vCut; out vec4 o;',
+    'uniform float uClip;',
+    'in vec3 vN; in vec3 vCol; in float vA; in float vZ; in float vHn; in float vNear; out vec4 o;',
     'void main() {',
-    '  if (vCut < 0.5) discard;   // cut away beyond the slice in view depth, with no soft edge to leave banding',
-    '  vec3 n = normalize(vN);',
-    '  vec3 c = lit(vCol, n, 0.3);',
-    '  o = vec4(c * vA, vA);',
+    '  if (vA < bayer(gl_FragCoord.xy)) discard;',
+    '  if (vHn > 0.5) discard;                              // shown as sticks instead',
+    '  if (abs(vZ) > uDepth) discard;                       // side views: cut away beyond the slice',
+    '  if (uMix > 0.5 && vZ > uClip) discard;               // clear the line of sight to the sticks',
+    '  if (!gl_FrontFacing) { o = vec4(vCol * 0.55, 1.0); return; }   // inside of a cut tube: flat cap',
+    '  o = vec4(lit(vCol, normalize(vN), 0.25), 1.0);',
     '}'
   ].join('\n');
 
@@ -202,8 +217,8 @@
     '  vec2 c = gl_PointCoord * 2.0 - 1.0; float d2 = dot(c, c); if (d2 > 1.0) discard;',
     '  float nz = sqrt(1.0 - d2);',
     '  vec3 col = lit(vCol, vec3(c.x, -c.y, nz), 0.5);',
-    '  if (vA < 0.4) discard;   // faint balls would still write depth and punch holes in the cartoon behind',
-    '  float a = 1.0 - smoothstep(0.85, 1.0, sqrt(d2));',
+    '  if (vA < bayer(gl_FragCoord.xy)) discard;',
+    '  float a = 1.0 - smoothstep(0.88, 1.0, sqrt(d2));',
     '  o = vec4(col * a, a);',
     '  gl_FragDepth = (-(vZ + nz * vRu) / 8.0) * 0.5 + 0.5;',
     '}'
@@ -232,7 +247,7 @@
     '  vec2 dir = len > 0.001 ? (sb - sa) / len : vec2(1.0, 0.0);',
     '  vec2 perp = vec2(-dir.y, dir.x);',
     '  float scale = mix(pa, pb, aC.x) * uScale;',
-    '  float ru = (aD.z < 0.5 ? ' + STICK_R.toFixed(3) + ' : 0.06) / ' + UNIT.toFixed(1) + ';',
+    '  float ru = (aD.z < 0.5 ? ' + STICK_R.toFixed(3) + ' : 0.07) / ' + UNIT.toFixed(1) + ';',
     '  vec2 px = mix(sa, sb, aC.x) + perp * aC.y * ru * scale;',
     '  float z2 = mix(va.z, vb.z, aC.x);',
     '  gl_Position = clipPos(px, z2);',
@@ -252,7 +267,7 @@
     '  float nx = vSide.x, nz = sqrt(max(0.0, 1.0 - nx * nx));',
     '  vec3 n = normalize(vec3(vDir * nx, nz));',
     '  vec3 base = mix(vColA, vColB, smoothstep(0.46, 0.54, vTL.x));',
-    '  if (vA < 0.4) discard;',
+    '  if (vA < bayer(gl_FragCoord.xy)) discard;',
     '  vec3 col = lit(base, n, 0.4);',
     '  o = vec4(col, 1.0);',
     '  gl_FragDepth = (-(vZ + nz * vRu) / 8.0) * 0.5 + 0.5;',
@@ -283,7 +298,7 @@
     var dU = ['uMix', 'uLight', 'uDepth', 'uHi', 'uPfA', 'uPfB', 'uBg', 'uN', 'uO', 'uS', 'uH'];
     lineP = program(LINE_VS, LINE_FS, ['uAlpha', 'uLight', 'uPfA', 'uPfB']);
     dotP = program(DOT_VS, DOT_FS, ['uAlpha', 'uLight', 'uSize', 'uPfA', 'uPfB']);
-    ribP = program(RIB_VS, RIB_FS, dU.concat(['uSk']));
+    ribP = program(RIB_VS, RIB_FS, dU.concat(['uSk', 'uClip']));
     sphP = program(SPH_VS, SPH_FS, dU.concat(['uRange', 'uAll', 'uHideH', 'uBallScale']));
     stkP = program(STK_VS, STK_FS, dU.concat(['uRange', 'uAll', 'uHideH']));
   } catch (err) {
@@ -376,7 +391,7 @@
       side[i] = norm(g); prev = side[i];
     }
     // ribbon half-width / half-thickness (Å) for a residue
-    function shape(res) { return isStrand(res) ? [0.8, 0.17] : [0.3, 0.3]; }
+    function shape(res) { return isStrand(res) ? [0.72, 0.13] : [0.24, 0.24]; }
 
     var rings = (n - 1) * SUB + 1;
     for (var s = 0; s < rings; s++) {
@@ -387,7 +402,7 @@
       var Bv = norm(cross(T, Sv)), Sx = norm(cross(Bv, T));
       var a0 = shape(i0), a1 = shape(i0 + 1), ue = u * u * (3 - 2 * u);
       var hw = a0[0] + (a1[0] - a0[0]) * ue, ht = a0[1] + (a1[1] - a0[1]) * ue;
-      if (isStrandEnd(i0)) { hw = 1.35 + (0.05 - 1.35) * u; ht = 0.17 + (0.07 - 0.17) * u; }   // arrowhead
+      if (isStrandEnd(i0)) { hw = 1.2 + (0.04 - 1.2) * u; ht = 0.13 + (0.06 - 0.13) * u; }   // arrowhead
       var resf = i0 + u;   // residue number along the ribbon, for highlighting
       for (var j = 0; j < M; j++) {
         var ph = j / M * TAU, cp = Math.cos(ph), sn = Math.sin(ph);
@@ -500,7 +515,7 @@
   function homeCam() {
     return {
       tx: 0, ty: 0, tz: 0, ax: HOME.ax, roll: HOME.roll, base: HOME.spin, phase: 0, rate: HOME.rate,
-      cx: view.home.x, cy: view.home.y, zoom: view.scale0, far: 0.4, near: 0.4, soft: 0.06, sk: 0.1, depth: 99, xs: 0,
+      cx: view.home.x, cy: view.home.y, zoom: view.scale0, far: 0.4, near: 0.4, soft: 0.0001, sk: 0.1, clip: 0.1, depth: 99, xs: 0, pf: -1,
       amt: 0, r0: 1, r1: 6
     };
   }
@@ -576,7 +591,8 @@
     var cap = 0.95 * pointMax / (2 * 0.5 / UNIT * view.dpr * 1.4);   // the biggest ball must fit a point sprite
     return {
       tx: T[0], ty: T[1], tz: T[2], ax: v.ax, roll: v.roll, base: v.spin, phase: 0, rate: v.rate / 1000,
-      cx: zc.x, cy: zc.y, zoom: Math.min(want, cap), far: v.far, near: v.near, soft: v.xs ? 0.015 : 0.06, sk: v.sk, depth: v.depth || 99, xs: v.xs || 0,
+      cx: zc.x, cy: zc.y, zoom: Math.min(want, cap), far: v.far, near: v.near, soft: 0.0001, sk: v.sk, clip: v.clip === undefined ? 0.1 : v.clip, depth: v.depth || 99, xs: v.xs || 0,
+      pf: v.sub === 'axis' || v.both ? -1 : (K0 + v.sub) % 2,
       amt: 1, r0: seg[0], r1: seg[1]
     };
   }
@@ -607,10 +623,12 @@
     cam.base = lerp(a.base, b.base, e); cam.phase = lerp(a.phase, b.phase, e);
     cam.zoom = Math.exp(lerp(Math.log(a.zoom), Math.log(b.zoom), e));
     cam.far = lerp(a.far, b.far, e); cam.near = lerp(a.near, b.near, e); cam.soft = lerp(a.soft, b.soft, e);
-    cam.sk = lerp(a.sk, b.sk, e); cam.xs = lerp(a.xs, b.xs, e);
+    cam.sk = lerp(a.sk, b.sk, e); cam.clip = lerp(a.clip, b.clip, e); cam.xs = lerp(a.xs, b.xs, e);
     cam.depth = Math.exp(lerp(Math.log(a.depth), Math.log(b.depth), e));
     cam.r0 = lerp(a.r0, b.r0, e); cam.r1 = lerp(a.r1, b.r1, e);
     cam.rate = lerp(a.rate, b.rate, e);
+    cam.pf = b.pf;
+    cam.soft = p < 1 ? 0.05 : b.soft;   // layers fade in and out while flying, but sit crisp once settled
     if (p >= 1) { cam = b; tween = null; }
   }
 
@@ -672,9 +690,9 @@
       if (skel > 0.01) put(instSkel, k, subEdge[k] * skel);
       d = (subY[k] - cam.ty) * toward;
       if (mix > 0.01) {
-        f = slab(d) * mix * cart;
+        f = slab(d) * mix * cart * (cam.pf < 0 || k % 2 === cam.pf ? 1 : 1 - mix);
         if (f > 0.01) put(instRib, k, f);
-        f = (1 - smooth(cam.sk, cam.sk + 0.04, Math.abs(subY[k] - cam.ty))) * mix;
+        f = (1 - smooth(cam.sk, cam.sk + cam.soft, Math.abs(subY[k] - cam.ty))) * mix;
         if (f > 0.01) put(instDet, k, f);
       }
     }
@@ -726,7 +744,7 @@
       if (instRib.n) {
         upload(instRib);
         gl.useProgram(ribP.p);
-        setCommon(ribP, C); setDetail(ribP, light, mix); gl.uniform1f(ribP.u.uSk, cam.sk);
+        setCommon(ribP, C); setDetail(ribP, light, mix); gl.uniform1f(ribP.u.uSk, cam.sk); gl.uniform1f(ribP.u.uClip, cam.clip);
         gl.bindVertexArray(ribVao);
         gl.drawElementsInstanced(gl.TRIANGLES, ribCount, gl.UNSIGNED_INT, 0, instRib.n);
       }
