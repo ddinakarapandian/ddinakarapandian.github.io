@@ -48,7 +48,7 @@
   var PAIR_Y = RISE / UNIT / 2;  // axial middle of the pair
 
   // At rest: the whole fibril, tilted toward the viewer and laid diagonally, turning slowly.
-  var HOME = { ax: 0.6, roll: 0.62, spin: 0.6, rate: 0.00004 };
+  var HOME = { ax: 0.6, roll: 0.62, spin: 0.6, rate: 0.000015 };
 
   // One view per section: where the camera looks and what it keeps.
   //   sub    which subunit of the pair to centre on (on the section's own residues); 'axis' = the fibril axis
