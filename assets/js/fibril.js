@@ -48,7 +48,7 @@
   var PAIR_Y = RISE / UNIT / 2;  // axial middle of the pair
 
   // At rest: the whole fibril, tilted toward the viewer and laid diagonally, turning slowly.
-  var HOME = { ax: 0.6, roll: 0.62, spin: 0.6, rate: 0.00004 };
+  var HOME = { ax: 0.6, roll: 0.62, spin: 0.6, rate: 0.000015 };
 
   // One view per section: where the camera looks and what it keeps.
   //   sub    which subunit of the pair to centre on (on the section's own residues); 'axis' = the fibril axis
@@ -57,16 +57,16 @@
   //   far / near   how far (units) the cartoon is kept behind / in front of the focus along the axis
   //   sk     how far (units) the ball-and-stick detail reaches along the axis
   //   depth  optional cut either side of the focus in view depth (side views)
-  //   rate   turntable speed, rad/s; 0 = holds still
+  //   rate   turntable speed, rad/s (about half a degree a second); 0 = holds still
   //   xs     1 = the cross-section (every heavy atom as sticks, no cartoon)
   var VIEWS = [
-    { sub: 'axis', ax: 1.5,  roll: -0.35, spin: 0.2, rate: 0.05,  wu: 2.3, far: 0.04, near: 0.04, sk: 0.04, xs: 1 },                  // About: the cross-section
-    { sub: 0,      ax: 0.2,  roll: 0.0,   spin: 0.5, rate: 0.10,  wu: 1.4, far: 0.45, near: 0.45, sk: 0.1,  depth: 0.5 },             // Research: side, turntable
-    { sub: 1,      ax: 0.95, roll: -0.5,  spin: 1.0, rate: 0.07,  wu: 0.8, far: 0.14, near: 0.04, sk: 0.1 },                          // Publications: into the core
+    { sub: 'axis', ax: 1.5,  roll: -0.35, spin: 0.2, rate: 0.006, wu: 2.3, far: 0.04, near: 0.04, sk: 0.04, xs: 1 },                  // About: the cross-section
+    { sub: 0,      ax: 0.2,  roll: 0.0,   spin: 0.5, rate: 0.012, wu: 1.4, far: 0.45, near: 0.45, sk: 0.1,  depth: 0.5 },             // Research: side, turntable
+    { sub: 1,      ax: 0.95, roll: -0.5,  spin: 1.0, rate: 0.008, wu: 0.8, far: 0.14, near: 0.04, sk: 0.1 },                          // Publications: into the core
     { sub: 0,      ax: 0.55, roll: 0.25,  spin: 2.2, rate: 0,     wu: 1.1, far: 0.3,  near: 0.3,  sk: 0.1,  depth: 0.6 },             // Experience: oblique, still
     { sub: 1,      ax: 1.4,  roll: -0.9,  spin: 0.0, rate: 0,     wu: 1.0, far: 0.16, near: 0.04, sk: 0.1 },                          // Honors: top, zoomed, still
-    { sub: 0,      ax: 0.15, roll: 0.0,   spin: 3.4, rate: 0.08,  wu: 1.0, far: 0.4,  near: 0.4,  sk: 0.1,  depth: 0.45 },            // Skills: side, close
-    { sub: 1,      ax: 1.0,  roll: 0.6,   spin: 4.4, rate: -0.06, wu: 0.8, far: 0.14, near: 0.04, sk: 0.1 }                           // Contact: into the core
+    { sub: 0,      ax: 0.15, roll: 0.0,   spin: 3.4, rate: 0.01,  wu: 1.0, far: 0.4,  near: 0.4,  sk: 0.1,  depth: 0.45 },            // Skills: side, close
+    { sub: 1,      ax: 1.0,  roll: 0.6,   spin: 4.4, rate: -0.008, wu: 0.8, far: 0.14, near: 0.04, sk: 0.1 }                           // Contact: into the core
   ];
 
   // ---- Shaders ----
